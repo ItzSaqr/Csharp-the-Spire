@@ -9,18 +9,22 @@ for (int i = 0; i < 5; i++)
     player.DrawPile.Add(new Defend());
 
 player.DrawPile.Add(new Bash());
+player.DrawPile.Add(new Prepare());
+player.DrawPile.Add(new Concentrate());
 
 player.Reshuffle();
 
 var enemy = new Snake();
 
-var combat = new Combat(player, enemy);
+var ui = new ConsoleCombatUI();
+var combat = new Combat(player, enemy, ui);
 
 while (combat.State != CombatState.Victory &&
        combat.State != CombatState.Defeat)
 {
     if (combat.State == CombatState.PlayerTurn)
     {
+        Console.Clear();
         Console.WriteLine("================================");
         Console.WriteLine($"PLAYER HP: {player.Hp} | Energy: {player.Energy}");
         Console.WriteLine($"PLAYER: {player.GetStatusText()}");
@@ -101,7 +105,7 @@ class Character
         return damage;
     }
 
-    public int ModifyUpcomingDamage(int damage)
+    public int ModifyIncomingDamage(int damage)
     {
         if (Vulnerable > 0) damage = (int)(damage * 1.5);
         return damage;
@@ -179,12 +183,27 @@ class Player : Character
         }
     }
 
-    public void DiscardCards(int amount)
+    public void DiscardRandom(int amount)
     {
-        int toDiscard = Math.Min(Hand.Count(), amount);
-        var discarded = Hand.Take(toDiscard).ToList();
-        DiscardPile.AddRange(discarded);
-        Hand.RemoveRange(0, toDiscard);
+        Random random = new Random();
+        for (int i = 0; i < amount && Hand.Count > 0; i++)
+        {
+            int randInt = random.Next(Hand.Count);
+
+            Card card = Hand[randInt];
+            
+            Hand.RemoveAt(randInt);
+            DiscardPile.Add(card);
+        }
+    }
+
+    public void DiscardSelected(List<Card> toDiscard)
+    {
+        foreach (Card card in toDiscard)
+        {
+            if (Hand.Remove(card))
+                DiscardPile.Add(card);
+        }
     }
 
     public void DiscardHand()
@@ -235,7 +254,7 @@ class Snake : Enemy
                 Execute = (player, self) =>
                 {
                     int dmg = self.ModifyOutgoingDamage(7);
-                    dmg = player.ModifyUpcomingDamage(dmg);
+                    dmg = player.ModifyIncomingDamage(dmg);
 
                     player.TakeDamage(dmg);
                 }
@@ -249,7 +268,7 @@ class Snake : Enemy
                 Execute = (player, self) =>
                 {
                     int dmg = self.ModifyOutgoingDamage(4);
-                    dmg = player.ModifyUpcomingDamage(dmg);
+                    dmg = player.ModifyIncomingDamage(dmg);
 
                     player.TakeDamage(dmg);
                     player.ApplyWeak(2);
@@ -267,17 +286,75 @@ enum CombatState
     Defeat
 }
 
+interface ICombatUI
+{
+    List<Card> ChooseCards(Player player, List<Card> source, int amount);
+    void ShowMessage(string message);
+}
+
+class ConsoleCombatUI : ICombatUI
+{
+    public List<Card> ChooseCards(Player player, List<Card> source, int amount)
+    {
+        var selected = new List<Card>();
+        if (amount >= source.Count) {
+            selected.AddRange(source);
+            return selected; 
+        }
+        while (selected.Count() < amount)
+        {
+            Console.Clear();
+            Console.WriteLine($"Choose {amount} cards. {selected.Count}/{amount} chosen.");
+
+            for (int i = 0; i < source.Count(); i++)
+            {
+                var c = source[i];
+                var mark = selected.Contains(c) ? " [selected]" : "";
+                Console.WriteLine($"{i}. {c.Name} [{c.Cost}] - {c.Description}{mark}");
+            }
+
+            var input = Console.ReadLine();
+
+            if (!int.TryParse(input, out int index))
+                continue;
+
+            if (index < 0 || index >= source.Count)
+                continue;
+
+            var card = source[index];
+
+            if (!selected.Contains(card))
+            {
+                selected.Add(card);
+            }
+            else if (selected.Contains(card))
+            {
+                selected.Remove(card);
+            }
+        }
+        return selected;
+    }
+
+    public void ShowMessage(string message)
+    {
+        Console.WriteLine(message);
+    }
+}
+
 class Combat
 {
+    private readonly ICombatUI ui;
+
     public Player Player { get; }
     public Enemy Enemy { get; }
 
     public CombatState State { get; private set; }
 
-    public Combat(Player player, Enemy enemy)
+    public Combat(Player player, Enemy enemy, ICombatUI ui)
     {
         Player = player;
         Enemy = enemy;
+        this.ui = ui;
         
         State = CombatState.PlayerTurn;
 
@@ -292,12 +369,19 @@ class Combat
 
         Player.Energy -= card.Cost;
 
-        card.Play(Player, Enemy);
-
         Player.Hand.Remove(card);
+
+        card.Play(Player, Enemy, this);
+
         Player.DiscardPile.Add(card);
 
         CheckEndCombat();
+    }
+
+    public void DiscardFromHand(int amount)
+    {
+        var cards = ui.ChooseCards(Player, Player.Hand, amount);
+        Player.DiscardSelected(cards);
     }
 
     public void StartPlayerTurn()
@@ -314,6 +398,7 @@ class Combat
         if (State != CombatState.PlayerTurn) return;
         Player.DiscardHand();
         Player.OnTurnEnd();
+        CheckEndCombat();
         StartEnemyTurn();
     }
 
