@@ -1,4 +1,6 @@
-﻿var player = new Player { Hp = 50 };
+﻿using CardGame.Cards;
+
+var player = new Player { Hp = 50 };
 
 for (int i = 0; i < 5; i++)
     player.DrawPile.Add(new Strike());
@@ -30,6 +32,7 @@ while (combat.State != CombatState.Victory &&
 
         Console.WriteLine($"{enemy.Name} HP: {enemy.Hp}");
         Console.WriteLine($"ENEMY: {enemy.GetStatusText()}");
+        Console.WriteLine($"INTENT: {enemy.Intent.Text}");
         Console.WriteLine("================================");
 
         Console.WriteLine("HAND:");
@@ -72,12 +75,18 @@ class Character
     public int Weak;
     public int Strength;
     public int Dexterity;
+    public int Poison;
 
     public void TakeDamage(int amount)
     {
         int blocked = Math.Min(Block, amount);
         Block -= blocked;
         Hp -= amount - blocked;
+    }
+
+    public void TakeDirectDamage(int amount)
+    {
+        Hp -= amount;
     }
 
     public void GainBlock(int amount)
@@ -108,10 +117,20 @@ class Character
         Vulnerable += amount;
     }
 
+    public void ApplyPoison(int amount)
+    {
+        Poison += amount;
+    }
+
     public void OnTurnEnd()
     {
         if (Weak > 0) Weak--;
         if (Vulnerable > 0) Vulnerable--;
+        if (Poison > 0)
+        {
+            TakeDirectDamage(Poison);
+            Poison--;
+        }
     }
 
     public string GetStatusText()
@@ -123,6 +142,7 @@ class Character
         if (Vulnerable > 0) parts.Add($"Vulnerable {Vulnerable}");
         if (Strength != 0) parts.Add($"Strength {Strength}");
         if (Dexterity != 0) parts.Add($"Dexterity {Dexterity}");
+        if (Poison != 0) parts.Add($"Poison {Poison}");
 
         return parts.Count == 0 ? "No statuses" : string.Join(", ", parts);
     }
@@ -174,11 +194,23 @@ class Player : Character
     }
 }
 
+class EnemyIntent
+{
+    public string Text;
+    public Action<Player, Enemy> Execute;
+}
+
 abstract class Enemy : Character
 {
     public string Name;
+    public EnemyIntent Intent;
 
-    public abstract void Act(Player player);
+    public abstract void ChooseIntent();
+
+    public void ExecuteIntent(Player player)
+    {
+        Intent.Execute(player, this);
+    }
 }
 
 class Snake : Enemy
@@ -188,82 +220,42 @@ class Snake : Enemy
     {
         Name = "Snake";
         Hp = 26;
+        ChooseIntent();
     }
 
-    public override void Act(Player player)
+    public override void ChooseIntent()
     {
         turn++;
 
-        if (turn % 3 == 0)
-            GainBlock(6);
+        if (turn % 3 != 0)
+        {
+            Intent = new EnemyIntent
+            {
+                Text = "Deals 7 damage",
+                Execute = (player, self) =>
+                {
+                    int dmg = self.ModifyOutgoingDamage(7);
+                    dmg = player.ModifyUpcomingDamage(dmg);
 
+                    player.TakeDamage(dmg);
+                }
+            };
+        }
         else
         {
-            int dmg = 7;
-            dmg = ModifyOutgoingDamage(dmg);
-            dmg = player.ModifyUpcomingDamage(dmg);
-            player.TakeDamage(dmg);
+            Intent = new EnemyIntent
+            {
+                Text = "Deals 4 damage, applies 2 Weak",
+                Execute = (player, self) =>
+                {
+                    int dmg = self.ModifyOutgoingDamage(4);
+                    dmg = player.ModifyUpcomingDamage(dmg);
+
+                    player.TakeDamage(dmg);
+                    player.ApplyWeak(2);
+                }
+            };
         }
-    }
-}
-
-abstract class Card
-{
-    public string Name;
-    public int Cost;
-    public string Description;
-
-    public abstract void Play(Player player, Enemy enemy);
-}
-
-class Strike : Card
-{
-    public Strike()
-    {
-        Name = "Strike";
-        Cost = 1;
-        Description = "Deals 6 damage";
-    }
-    public override void Play(Player player, Enemy enemy)
-    {
-        int dmg = 6;
-        dmg = player.ModifyOutgoingDamage(dmg);
-        dmg = enemy.ModifyUpcomingDamage(dmg);
-        enemy.TakeDamage(dmg);
-    }
-}
-
-class Defend : Card
-{
-    public Defend()
-    {
-        Name = "Defend";
-        Cost = 1;
-        Description = "Gives 5 block";
-    }
-
-    public override void Play(Player player, Enemy enemy)
-    {
-        player.GainBlock(5);
-    }
-}
-
-class Bash : Card
-{
-    public Bash()
-    {
-        Name = "Bash";
-        Cost = 2;
-        Description = "Deals 8 damage. Applies 3 vulnerable";
-    }
-
-    public override void Play(Player player, Enemy enemy)
-    {
-        int dmg = 8;
-        dmg = player.ModifyOutgoingDamage(dmg);
-        dmg = enemy.ModifyUpcomingDamage(dmg);
-        enemy.TakeDamage(dmg);
-        enemy.ApplyVulnerable(3);
     }
 }
 
@@ -331,13 +323,14 @@ class Combat
 
         CheckEndCombat();
 
-        Enemy.Act(Player);
+        Enemy.ExecuteIntent(Player);
 
         CheckEndCombat();
 
         if (State == CombatState.EnemyTurn)
         {
             Enemy.OnTurnEnd();
+            Enemy.ChooseIntent();
             StartPlayerTurn();
         }
     }
