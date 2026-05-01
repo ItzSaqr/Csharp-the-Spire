@@ -1,4 +1,6 @@
 ﻿using CardGame.Cards;
+using CardGame.Passives;
+using System.Collections.Generic;
 
 var player = new Player { Hp = 50 };
 
@@ -30,7 +32,8 @@ while (combat.State != CombatState.Victory &&
         Console.WriteLine($"PLAYER: {player.GetStatusText()}");
 
         Console.WriteLine();
-        Console.WriteLine($"Draw: {player.DrawPile.Count} | Discard: {player.DiscardPile.Count}");
+        Console.WriteLine($"Draw: {player.DrawPile.Count} | Discard: {player.DiscardPile.Count} | Exhaust: {player.ExhaustPile.Count}");
+        Console.WriteLine($"View piles: 'd' - Draw Pile | 's' - Discard Pile | 'x' - Exhaust Pile");
 
         Console.WriteLine();
 
@@ -60,12 +63,50 @@ while (combat.State != CombatState.Victory &&
             continue;
         }
 
+        if (input == "d")
+        {
+            ShowPile("Draw Pile:", player.DrawPile);
+            continue;
+        }
+
+        if (input == "s")
+        {
+            ShowPile("Discard Pile:", player.DiscardPile);
+            continue;
+        }
+
+        if (input == "x")
+        {
+            ShowPile("Exhaust Pile:", player.ExhaustPile);
+            continue;
+        }
+
         if (int.TryParse(input, out int index) &&
             index >= 0 && index < player.Hand.Count)
         {
             combat.PlayCard(player.Hand[index]);
         }
     }
+}
+static void ShowPile(string title, List<Card> pile)
+{
+    Console.Clear();
+    Console.WriteLine("================================");
+    Console.WriteLine(title);
+
+    if (pile.Count == 0)
+        Console.WriteLine("Pile is empty");
+
+    for (int i = 0; i < pile.Count; i++)
+    {
+        var c = pile[i];
+        Console.WriteLine($"{i}. {c.Name} [{c.Cost}] - {c.Description}");
+    }
+
+    Console.WriteLine("================================");
+    Console.WriteLine();
+    Console.WriteLine("Press Enter to return");
+    Console.ReadLine();
 }
 
 
@@ -80,6 +121,7 @@ class Character
     public int Strength;
     public int Dexterity;
     public int Poison;
+    public List<PassiveEffect> Passives = new();
 
     public void TakeDamage(int amount)
     {
@@ -159,6 +201,7 @@ class Player : Character
     public List<Card> DrawPile = new();
     public List<Card> Hand = new();
     public List<Card> DiscardPile = new();
+    public List<Card> ExhaustPile = new();
 
     public void Reshuffle()
     {
@@ -373,7 +416,10 @@ class Combat
 
         card.Play(Player, Enemy, this);
 
-        Player.DiscardPile.Add(card);
+        foreach (var passive in Player.Passives) passive.OnCardPlayed(Player, this, card);
+
+        if (card.Exhaust) Player.ExhaustPile.Add(card);
+        else Player.DiscardPile.Add(card);
 
         CheckEndCombat();
     }
@@ -391,14 +437,21 @@ class Combat
         Player.Block = 0;
         Player.Energy = 3;
         Player.DrawCards(5);
+
+        foreach (var passive in Player.Passives) passive.OnTurnStart(Player, this);
     }
 
     public void EndPlayerTurn()
     {
         if (State != CombatState.PlayerTurn) return;
+
         Player.DiscardHand();
+        foreach (var passive in Player.Passives) passive.OnTurnEnd(Player, this);
         Player.OnTurnEnd();
+
         CheckEndCombat();
+        if (State != CombatState.PlayerTurn) return;
+
         StartEnemyTurn();
     }
 

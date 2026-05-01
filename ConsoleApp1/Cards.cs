@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CardGame.Passives;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,11 +7,23 @@ using System.Threading.Tasks;
 
 namespace CardGame.Cards
 {
+    enum CardType
+    {
+        Attack,
+        Skill,
+        Power,
+        Status,
+        Curse
+    }
+
     abstract class Card
     {
         public string Name;
         public int Cost;
         public string Description;
+        public CardType Type;
+
+        public bool Exhaust;
 
         public abstract void Play(Player player, Enemy enemy, Combat combat);
     }
@@ -21,7 +34,9 @@ namespace CardGame.Cards
         {
             Name = "Strike";
             Cost = 1;
-            Description = "Deals 6 damage";
+            Description = "Deal 6 damage";
+            Type = CardType.Attack;
+            Exhaust = false;
         }
         public override void Play(Player player, Enemy enemy, Combat combat)
         {
@@ -38,7 +53,9 @@ namespace CardGame.Cards
         {
             Name = "Defend";
             Cost = 1;
-            Description = "Gives 5 block";
+            Description = "Gain 5 block";
+            Type = CardType.Skill;
+            Exhaust = false;
         }
 
         public override void Play(Player player, Enemy enemy, Combat combat)
@@ -53,7 +70,9 @@ namespace CardGame.Cards
         {
             Name = "Bash";
             Cost = 2;
-            Description = "Deals 8 damage. Applies 3 vulnerable";
+            Description = "Deal 8 damage. Apply 3 vulnerable";
+            Type = CardType.Attack;
+            Exhaust = false;
         }
 
         public override void Play(Player player, Enemy enemy, Combat combat)
@@ -72,7 +91,9 @@ namespace CardGame.Cards
         {
             Name = "Deadly Poison";
             Cost = 1;
-            Description = "Applies 5 poison";
+            Description = "Apply 5 poison";
+            Type = CardType.Skill;
+            Exhaust = false;
         }
 
         public override void Play(Player player, Enemy enemy, Combat combat)
@@ -89,6 +110,8 @@ namespace CardGame.Cards
             Name = "Prepare";
             Cost = 1;
             Description = "Draw 3 cards";
+            Type = CardType.Skill;
+            Exhaust = false;
         }
 
         public override void Play(Player player, Enemy enemy, Combat combat)
@@ -104,12 +127,51 @@ namespace CardGame.Cards
             Name = "Concentrate";
             Cost = 0;
             Description = "Discard 2 cards, gain 1 energy";
+            Type = CardType.Skill;
+            Exhaust = false;
         }
 
         public override void Play(Player player, Enemy enemy, Combat combat)
         {
             combat.DiscardFromHand(2);
             player.Energy += 1;
+        }
+    }
+
+    class Shiv : Card
+    {
+        public Shiv()
+        {
+            Name = "Shiv";
+            Cost = 0;
+            Description = "Deal 4 damage. Exhaust.";
+            Type = CardType.Attack;
+            Exhaust = true;
+        }
+
+        public override void Play(Player player, Enemy enemy, Combat combat)
+        {
+            int dmg = 4;
+            dmg = player.ModifyOutgoingDamage(dmg);
+            dmg = enemy.ModifyIncomingDamage(dmg);
+            enemy.TakeDamage(dmg);
+        }
+    }
+
+    class InfiniteBlades : Card
+    {
+        public InfiniteBlades()
+        {
+            Name = "Infinite Blades";
+            Cost = 1;
+            Description = "Add a Shiv into your hand every turn";
+            Type = CardType.Power;
+            Exhaust = false;
+        }
+
+        public override void Play(Player player, Enemy enemy, Combat combat)
+        {
+            player.Passives.Add(new CreateShiv());
         }
     }
 }
