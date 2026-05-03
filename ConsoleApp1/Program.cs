@@ -1,20 +1,20 @@
 ﻿using CardGame.Cards;
 using CardGame.Passives;
+using CardGame.Rewards;
 using System.Collections.Generic;
 
 var player = new Player { Hp = 50 };
 
-for (int i = 0; i < 5; i++)
-    player.DrawPile.Add(new Strike());
+for (int i = 0; i < 2; i++)
+    player.Deck.Add(new Strike());
 
-for (int i = 0; i < 5; i++)
-    player.DrawPile.Add(new Defend());
+for (int i = 0; i < 2; i++)
+    player.Deck.Add(new Defend());
 
-player.DrawPile.Add(new Bash());
-player.DrawPile.Add(new Prepare());
-player.DrawPile.Add(new Concentrate());
-
-player.Reshuffle();
+player.Deck.Add(new Bash());
+player.Deck.Add(new Prepare());
+player.Deck.Add(new Concentrate());
+player.Deck.Add(new InfiniteBlades());
 
 var enemy = new Snake();
 
@@ -109,8 +109,20 @@ static void ShowPile(string title, List<Card> pile)
     Console.ReadLine();
 }
 
+RewardGenerator gen = new RewardGenerator();
+Reward reward;
 
 Console.WriteLine(combat.State);
+if (combat.State == CombatState.Victory)
+{
+    reward = gen.Generate(CombatType.Basic);
+    var card = ui.ChooseCardReward(reward);
+
+    PassiveEffect relic = null;
+    if (reward.Relics.Count > 0) relic = ui.ChooseRelicReward(reward);
+
+    player.ApplyReward(reward, card, relic);
+}
 
 class Character
 {
@@ -178,7 +190,6 @@ class Character
             Poison--;
         }
     }
-
     public string GetStatusText()
     {
         var parts = new List<string>();
@@ -190,6 +201,8 @@ class Character
         if (Dexterity != 0) parts.Add($"Dexterity {Dexterity}");
         if (Poison != 0) parts.Add($"Poison {Poison}");
 
+        for(int i = 0; i<Passives.Count;i++) parts.Add($"{Passives[i].Name} | {Passives[i].Description}");
+
         return parts.Count == 0 ? "No statuses" : string.Join(", ", parts);
     }
 }
@@ -197,7 +210,9 @@ class Character
 class Player : Character
 {
     public int Energy;
+    public int Gold;
 
+    public List<Card> Deck = new();
     public List<Card> DrawPile = new();
     public List<Card> Hand = new();
     public List<Card> DiscardPile = new();
@@ -253,6 +268,25 @@ class Player : Character
     {
         DiscardPile.AddRange(Hand);
         Hand.Clear();
+    }
+
+    public void OnCombatStart()
+    {
+        DrawPile.Clear();
+        Hand.Clear();
+        DiscardPile.Clear();
+        ExhaustPile.Clear();
+        Passives.RemoveAll(p => p.Type == PassiveType.Power);
+
+        DrawPile.AddRange(Deck);
+        Reshuffle();
+    }
+
+    public void ApplyReward(Reward reward, Card card, PassiveEffect relic)
+    {
+        Gold += reward.Gold;
+        if (card != null) Deck.Add(card);
+        if (relic != null) Passives.Add(relic);
     }
 }
 
@@ -329,10 +363,21 @@ enum CombatState
     Defeat
 }
 
+enum CombatType
+{
+    Basic,
+    Elite,
+    Boss
+}
+
 interface ICombatUI
 {
     List<Card> ChooseCards(Player player, List<Card> source, int amount);
     void ShowMessage(string message);
+
+    Card ChooseCardReward(Reward reward);
+
+    PassiveEffect ChooseRelicReward(Reward reward);
 }
 
 class ConsoleCombatUI : ICombatUI
@@ -378,6 +423,71 @@ class ConsoleCombatUI : ICombatUI
         return selected;
     }
 
+    public Card ChooseCardReward(Reward reward)
+    {
+        var source = reward.CardChoices;
+
+        Console.Clear();
+        Console.WriteLine($"Choose card between {source.Count} cards.");
+
+        for (int i = 0; i < source.Count(); i++)
+        {
+            var c = source[i];
+            Console.WriteLine($"{i}. {c.Name} [{c.Cost}] - {c.Description}");
+        }
+        Console.WriteLine("s - skip");
+
+        var input = "";
+        int index = 0;
+
+        while (true)
+        {
+            input = Console.ReadLine();
+
+            if (input == "s")
+                return null;
+
+            if (int.TryParse(input, out index) &&
+                index >= 0 && index < source.Count)
+            {
+                return source[index];
+            }
+        }
+    }
+
+    public PassiveEffect ChooseRelicReward(Reward reward)
+    {
+        var source = reward.Relics;
+
+        Console.Clear();
+        Console.WriteLine($"Choose card between {source.Count} cards.");
+
+        for (int i = 0; i < source.Count(); i++)
+        {
+            var c = source[i];
+            Console.WriteLine($"{i}. {c.Name} - {c.Description}");
+        }
+        Console.WriteLine("s - skip");
+
+        var input = "";
+        int index = 0;
+
+
+        while (true)
+        {
+            input = Console.ReadLine();
+
+            if (input == "s")
+                return null;
+
+            if (int.TryParse(input, out index) &&
+                index >= 0 && index < source.Count)
+            {
+                return source[index];
+            }
+        }
+    }
+
     public void ShowMessage(string message)
     {
         Console.WriteLine(message);
@@ -401,6 +511,7 @@ class Combat
         
         State = CombatState.PlayerTurn;
 
+        player.OnCombatStart();
         StartPlayerTurn();
     }
 
@@ -418,7 +529,9 @@ class Combat
 
         foreach (var passive in Player.Passives) passive.OnCardPlayed(Player, this, card);
 
-        if (card.Exhaust) Player.ExhaustPile.Add(card);
+
+        if (card.Type == CardType.Power) { }
+        else if (card.Exhaust) Player.ExhaustPile.Add(card);
         else Player.DiscardPile.Add(card);
 
         CheckEndCombat();
@@ -479,3 +592,4 @@ class Combat
         else if (Player.Hp <= 0) State = CombatState.Defeat;
     }
 }
+

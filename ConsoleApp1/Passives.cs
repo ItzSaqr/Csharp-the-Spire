@@ -1,4 +1,5 @@
 ﻿using CardGame.Cards;
+using CardGame.Rewards;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,8 +21,12 @@ namespace CardGame.Passives
     }
     enum PassiveType
     {
-        Relic,
         Power,
+        CommonRelic,
+        UncommonRelic,
+        RareRelic,
+        ShopRelic,
+        BossRelic
     }
 
     class CreateShiv : PassiveEffect

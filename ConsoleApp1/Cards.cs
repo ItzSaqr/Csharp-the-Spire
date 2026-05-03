@@ -1,4 +1,5 @@
 ﻿using CardGame.Passives;
+using CardGame.Rewards;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,13 +17,22 @@ namespace CardGame.Cards
         Curse
     }
 
+    enum Rarity
+    {
+        Common,
+        Uncommon,
+        Rare
+    }
+
     abstract class Card
     {
         public string Name;
         public int Cost;
         public string Description;
         public CardType Type;
+        public Rarity Rarity;
 
+        public bool Rewardable;
         public bool Exhaust;
 
         public abstract void Play(Player player, Enemy enemy, Combat combat);
@@ -36,6 +46,9 @@ namespace CardGame.Cards
             Cost = 1;
             Description = "Deal 6 damage";
             Type = CardType.Attack;
+            Rarity = Rarity.Common;
+
+            Rewardable = false;
             Exhaust = false;
         }
         public override void Play(Player player, Enemy enemy, Combat combat)
@@ -55,6 +68,9 @@ namespace CardGame.Cards
             Cost = 1;
             Description = "Gain 5 block";
             Type = CardType.Skill;
+            Rarity = Rarity.Common;
+
+            Rewardable = false;
             Exhaust = false;
         }
 
@@ -72,6 +88,9 @@ namespace CardGame.Cards
             Cost = 2;
             Description = "Deal 8 damage. Apply 3 vulnerable";
             Type = CardType.Attack;
+            Rarity = Rarity.Common;
+
+            Rewardable = false;
             Exhaust = false;
         }
 
@@ -93,6 +112,9 @@ namespace CardGame.Cards
             Cost = 1;
             Description = "Apply 5 poison";
             Type = CardType.Skill;
+            Rarity = Rarity.Common;
+
+            Rewardable = true;
             Exhaust = false;
         }
 
@@ -111,6 +133,9 @@ namespace CardGame.Cards
             Cost = 1;
             Description = "Draw 3 cards";
             Type = CardType.Skill;
+            Rarity = Rarity.Common;
+
+            Rewardable = true;
             Exhaust = false;
         }
 
@@ -128,6 +153,9 @@ namespace CardGame.Cards
             Cost = 0;
             Description = "Discard 2 cards, gain 1 energy";
             Type = CardType.Skill;
+            Rarity = Rarity.Common;
+
+            Rewardable = true;
             Exhaust = false;
         }
 
@@ -146,6 +174,9 @@ namespace CardGame.Cards
             Cost = 0;
             Description = "Deal 4 damage. Exhaust.";
             Type = CardType.Attack;
+            Rarity = Rarity.Common;
+
+            Rewardable = false;
             Exhaust = true;
         }
 
@@ -166,6 +197,9 @@ namespace CardGame.Cards
             Cost = 1;
             Description = "Add a Shiv into your hand every turn";
             Type = CardType.Power;
+            Rarity = Rarity.Uncommon;
+
+            Rewardable = true;
             Exhaust = false;
         }
 
