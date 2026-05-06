@@ -4,7 +4,7 @@ using CardGame.Passives;
 using CardGame.Rewards;
 using System.Collections.Generic;
 
-var player = new Player { Hp = 50, MaxEnergy = 3};
+var player = new Player { Hp = 50, MaxHp = 50, MaxEnergy = 3 };
 
 for (int i = 0; i < 2; i++)
     player.Deck.Add(new Strike());
@@ -17,7 +17,7 @@ player.Deck.Add(new Prepare());
 player.Deck.Add(new Concentrate());
 player.Deck.Add(new InfiniteBlades());
 
-var enemy = new Gremlin();
+var enemy = new Snake();
 
 var ui = new ConsoleCombatUI();
 var combat = new Combat(player, enemy, ui);
@@ -89,6 +89,8 @@ while (combat.State != CombatState.Victory &&
         }
     }
 }
+
+
 static void ShowPile(string title, List<Card> pile)
 {
     Console.Clear();
@@ -120,9 +122,13 @@ if (combat.State == CombatState.Victory)
     var card = ui.ChooseCardReward(reward);
 
     PassiveEffect relic = null;
-    if (reward.Relics.Count > 0) relic = ui.ChooseRelicReward(reward);
+    if (reward.Relics.Count > 0)
+        relic = ui.ChooseRelicReward(reward);
 
     player.ApplyReward(reward, card, relic);
+
+    var restSite = new RestSite();
+    restSite.Enter(player, ui);
 }
 
 class Character
@@ -147,7 +153,7 @@ class Character
     public void Heal(int amount)
     {
         Hp += amount;
-        if (Hp + amount > MaxHp) Hp = MaxHp;
+        if (Hp > MaxHp) Hp = MaxHp;
     }
 
     public void TakeDirectDamage(int amount)
@@ -334,7 +340,7 @@ enum CombatType
     Boss
 }
 
-interface ICombatUI
+interface IUserInterface
 {
     List<Card> ChooseCards(Player player, List<Card> source, int amount);
     void ShowMessage(string message);
@@ -344,7 +350,7 @@ interface ICombatUI
     PassiveEffect ChooseRelicReward(Reward reward);
 }
 
-class ConsoleCombatUI : ICombatUI
+class ConsoleCombatUI : IUserInterface
 {
     public List<Card> ChooseCards(Player player, List<Card> source, int amount)
     {
@@ -460,14 +466,14 @@ class ConsoleCombatUI : ICombatUI
 
 class Combat
 {
-    private readonly ICombatUI ui;
+    private readonly IUserInterface ui;
 
     public Player Player { get; }
     public Enemy Enemy { get; }
 
     public CombatState State { get; private set; }
 
-    public Combat(Player player, Enemy enemy, ICombatUI ui)
+    public Combat(Player player, Enemy enemy, IUserInterface ui)
     {
         Player = player;
         Enemy = enemy;
@@ -559,3 +565,115 @@ class Combat
     }
 }
 
+abstract class RestOption
+{
+    public string Name;
+    public string Description;
+
+    public virtual bool CanUse(Player player)
+    {
+        return true;
+    }
+
+    public abstract void Use(Player player, IUserInterface ui);
+}
+
+class HealOption : RestOption
+{
+    public HealOption()
+    {
+        Name = "Heal";
+        Description = "Heal 30% of max HP";
+    }
+
+    public override bool CanUse(Player player)
+    {
+        return player.Hp < player.MaxHp;
+    }
+
+    public override void Use(Player player, IUserInterface ui)
+    {
+        int heal = (int)(player.MaxHp * 0.3);
+        player.Heal(heal);
+    }
+}
+
+class UpgradeCardOption : RestOption
+{
+    public UpgradeCardOption()
+    {
+        Name = "Upgrade card";
+        Description = "Upgrade a card in your deck";
+    }
+
+    public override bool CanUse(Player player)
+    {
+        return player.Deck.Any(card => !card.Upgraded);
+    }
+
+    public override void Use(Player player, IUserInterface ui)
+    {
+        var cards = player.Deck
+            .Where(card => !card.Upgraded)
+            .ToList();
+
+        if (cards.Count == 1)
+        {
+            cards[0].Upgrade();
+            return;
+        }
+
+        var selected = ui.ChooseCards(player, cards, 1);
+
+        if (selected.Count > 0) selected[0].Upgrade();
+    }
+}
+
+class RestSite
+{
+    private readonly List<RestOption> options = new List<RestOption>()
+    {
+        new HealOption(),
+        new UpgradeCardOption()
+    };
+
+    public void Enter(Player player, IUserInterface ui)
+    {
+        while (true)
+        {
+            Console.Clear();
+            Console.WriteLine("Rest Site");
+            Console.WriteLine("================================");
+            Console.WriteLine($"Hp: {player.Hp}/{player.MaxHp}");
+            Console.WriteLine();
+            Console.WriteLine("Options available:");
+            Console.WriteLine("================================");
+
+            for(int i = 0; i < options.Count; i++)
+            {
+                var option = options[i];
+                string locked = option.CanUse(player) ? "" : " [unavailable]";
+                Console.WriteLine($"{i}. {option.Name} - {option.Description}{locked}");
+            }
+            Console.WriteLine("s - skip");
+            Console.WriteLine("================================");
+
+            var input = Console.ReadLine();
+
+            if (input == "s") break;
+
+            if (!int.TryParse(input, out int index))
+                continue;
+            if (index < 0 || index >= options.Count)
+                continue;
+            
+            var chosen = options[index];
+
+            if (!chosen.CanUse(player))
+                continue;
+
+            chosen.Use(player, ui);
+            break;
+        }
+    }
+}

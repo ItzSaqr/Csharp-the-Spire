@@ -218,13 +218,13 @@ namespace CardGame.Cards
 
     class Concentrate : Card
     {
-        private int discard = 2;
-        private int energy = 1;
+        private int discard = 3;
+        private int energy = 2;
         public Concentrate()
         {
             Name = "Concentrate";
             Cost = 0;
-            Description = "Discard 2 cards, gain 1 energy";
+            Description = "Discard 3 cards, gain 2 energy";
             Type = CardType.Skill;
             Rarity = Rarity.Common;
 
@@ -244,7 +244,7 @@ namespace CardGame.Cards
             if (Upgraded) return;
             Name += "+";
             Upgraded = true;
-            energy = 2;
+            discard = 2;
             Description = "Discard 2 cards, gain 2 energy";
         }
     }
