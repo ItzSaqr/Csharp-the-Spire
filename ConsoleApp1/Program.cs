@@ -1,9 +1,10 @@
 ﻿using CardGame.Cards;
+using CardGame.Enemies;
 using CardGame.Passives;
 using CardGame.Rewards;
 using System.Collections.Generic;
 
-var player = new Player { Hp = 50 };
+var player = new Player { Hp = 50, MaxEnergy = 3};
 
 for (int i = 0; i < 2; i++)
     player.Deck.Add(new Strike());
@@ -16,7 +17,7 @@ player.Deck.Add(new Prepare());
 player.Deck.Add(new Concentrate());
 player.Deck.Add(new InfiniteBlades());
 
-var enemy = new Snake();
+var enemy = new Gremlin();
 
 var ui = new ConsoleCombatUI();
 var combat = new Combat(player, enemy, ui);
@@ -127,6 +128,7 @@ if (combat.State == CombatState.Victory)
 class Character
 {
     public int Hp;
+    public int MaxHp;
     public int Block;
     public int Vulnerable;
     public int Weak;
@@ -140,6 +142,12 @@ class Character
         int blocked = Math.Min(Block, amount);
         Block -= blocked;
         Hp -= amount - blocked;
+    }
+
+    public void Heal(int amount)
+    {
+        Hp += amount;
+        if (Hp + amount > MaxHp) Hp = MaxHp;
     }
 
     public void TakeDirectDamage(int amount)
@@ -180,6 +188,16 @@ class Character
         Poison += amount;
     }
 
+    public void ApplyStrength(int amount)
+    {
+        Strength += amount;
+    }
+
+    public void ApplyDexterity(int amount)
+    {
+        Dexterity += amount;
+    }
+
     public void OnTurnEnd()
     {
         if (Weak > 0) Weak--;
@@ -210,6 +228,7 @@ class Character
 class Player : Character
 {
     public int Energy;
+    public int MaxEnergy;
     public int Gold;
 
     public List<Card> Deck = new();
@@ -288,70 +307,15 @@ class Player : Character
         if (card != null) Deck.Add(card);
         if (relic != null) Passives.Add(relic);
     }
-}
 
-class EnemyIntent
-{
-    public string Text;
-    public Action<Player, Enemy> Execute;
-}
-
-abstract class Enemy : Character
-{
-    public string Name;
-    public EnemyIntent Intent;
-
-    public abstract void ChooseIntent();
-
-    public void ExecuteIntent(Player player)
+    public void MoveInnateCardsOnTop()
     {
-        Intent.Execute(player, this);
-    }
-}
+        var innate = DrawPile
+            .Where(card => card.Innate)
+            .ToList();
 
-class Snake : Enemy
-{
-    private int turn = 0;
-    public Snake()
-    {
-        Name = "Snake";
-        Hp = 26;
-        ChooseIntent();
-    }
-
-    public override void ChooseIntent()
-    {
-        turn++;
-
-        if (turn % 3 != 0)
-        {
-            Intent = new EnemyIntent
-            {
-                Text = "Deals 7 damage",
-                Execute = (player, self) =>
-                {
-                    int dmg = self.ModifyOutgoingDamage(7);
-                    dmg = player.ModifyIncomingDamage(dmg);
-
-                    player.TakeDamage(dmg);
-                }
-            };
-        }
-        else
-        {
-            Intent = new EnemyIntent
-            {
-                Text = "Deals 4 damage, applies 2 Weak",
-                Execute = (player, self) =>
-                {
-                    int dmg = self.ModifyOutgoingDamage(4);
-                    dmg = player.ModifyIncomingDamage(dmg);
-
-                    player.TakeDamage(dmg);
-                    player.ApplyWeak(2);
-                }
-            };
-        }
+        DrawPile.RemoveAll(card => card.Innate);
+        DrawPile.InsertRange(0, innate);
     }
 }
 
@@ -512,6 +476,7 @@ class Combat
         State = CombatState.PlayerTurn;
 
         player.OnCombatStart();
+        player.MoveInnateCardsOnTop();
         StartPlayerTurn();
     }
 
@@ -528,6 +493,7 @@ class Combat
         card.Play(Player, Enemy, this);
 
         foreach (var passive in Player.Passives) passive.OnCardPlayed(Player, this, card);
+        foreach (var passive in Enemy.Passives) passive.OnCardPlayed(Player, this, card);
 
 
         if (card.Type == CardType.Power) { }
@@ -548,7 +514,7 @@ class Combat
         State = CombatState.PlayerTurn;
 
         Player.Block = 0;
-        Player.Energy = 3;
+        Player.Energy = Player.MaxEnergy;
         Player.DrawCards(5);
 
         foreach (var passive in Player.Passives) passive.OnTurnStart(Player, this);

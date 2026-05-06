@@ -1,6 +1,7 @@
 ﻿using CardGame.Cards;
 using CardGame.Passives;
 using System.Reflection;
+using CardGame.Enemies;
 using System;
 using System.Collections.Generic;
 using System.Linq;

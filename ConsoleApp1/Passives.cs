@@ -42,4 +42,22 @@ namespace CardGame.Passives
             player.Hand.Add(new Shiv());
         }
     }
+
+    class Enrage : PassiveEffect
+    {
+        private int amount;
+        public Enrage(int amount)
+        {
+            Name = "Enrage";
+            Description = $"Whenever you play a Skill, gains {amount} Strength";
+            Type = PassiveType.Power;
+
+            this.amount = amount;
+        }
+
+        public override void OnCardPlayed(Player player, Combat combat, Card card)
+        {
+            if (card.Type == CardType.Skill) combat.Enemy.ApplyStrength(amount);
+        }
+    }
 }

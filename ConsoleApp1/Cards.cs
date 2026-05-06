@@ -1,10 +1,12 @@
-﻿using CardGame.Passives;
+﻿using CardGame.Enemies;
+using CardGame.Passives;
 using CardGame.Rewards;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace CardGame.Cards
 {
@@ -34,12 +36,21 @@ namespace CardGame.Cards
 
         public bool Rewardable;
         public bool Exhaust;
+        public bool Upgraded;
+        public bool Innate;
 
         public abstract void Play(Player player, Enemy enemy, Combat combat);
+
+        public virtual void Upgrade()
+        {
+            Name += "+";
+            Upgraded = true;
+        }
     }
 
     class Strike : Card
     {
+        private int damage = 6;
         public Strike()
         {
             Name = "Strike";
@@ -50,18 +61,30 @@ namespace CardGame.Cards
 
             Rewardable = false;
             Exhaust = false;
+            Upgraded = false;
+            Innate = false;
         }
         public override void Play(Player player, Enemy enemy, Combat combat)
         {
-            int dmg = 6;
+            int dmg = damage;
             dmg = player.ModifyOutgoingDamage(dmg);
             dmg = enemy.ModifyIncomingDamage(dmg);
             enemy.TakeDamage(dmg);
+        }
+
+        public override void Upgrade()
+        {
+            if (Upgraded) return;
+            Name += "+";
+            Upgraded = true;
+            damage = 9;
+            Description = "Deal 9 damage";
         }
     }
 
     class Defend : Card
     {
+        private int block;
         public Defend()
         {
             Name = "Defend";
@@ -72,40 +95,66 @@ namespace CardGame.Cards
 
             Rewardable = false;
             Exhaust = false;
+            Upgraded = false;
+            Innate = false;
         }
 
         public override void Play(Player player, Enemy enemy, Combat combat)
         {
-            player.GainBlock(5);
+            player.GainBlock(block);
+        }
+
+        public override void Upgrade()
+        {
+            if (Upgraded) return;
+            Name += "+";
+            Upgraded = true;
+            block = 8;
+            Description = "Gain 8 block";
         }
     }
 
     class Bash : Card
     {
+        private int damage = 8;
+        private int vulnerable = 2;
         public Bash()
         {
             Name = "Bash";
             Cost = 2;
-            Description = "Deal 8 damage. Apply 3 vulnerable";
+            Description = "Deal 8 damage. Apply 2 vulnerable";
             Type = CardType.Attack;
             Rarity = Rarity.Common;
 
             Rewardable = false;
             Exhaust = false;
+            Upgraded = false;
+            Innate = false;
         }
 
         public override void Play(Player player, Enemy enemy, Combat combat)
         {
-            int dmg = 8;
+            int dmg = damage;
             dmg = player.ModifyOutgoingDamage(dmg);
             dmg = enemy.ModifyIncomingDamage(dmg);
             enemy.TakeDamage(dmg);
-            enemy.ApplyVulnerable(3);
+            enemy.ApplyVulnerable(vulnerable);
+        }
+
+        public override void Upgrade()
+        {
+            if (Upgraded) return;
+            Name += "+";
+            Upgraded = true;
+            damage = 11;
+            vulnerable = 3;
+            Description = "Deal 11 damage. Apply 3 vulnerable";
         }
     }
 
     class DeadlyPoison : Card
     {
+        private int poison;
         public DeadlyPoison()
         {
             Name = "Deadly Poison";
@@ -116,17 +165,28 @@ namespace CardGame.Cards
 
             Rewardable = true;
             Exhaust = false;
+            Upgraded = false;
+            Innate = false;
         }
 
         public override void Play(Player player, Enemy enemy, Combat combat)
         {
-            enemy.ApplyPoison(5);
+            enemy.ApplyPoison(poison);
         }
 
+        public override void Upgrade()
+        {
+            if (Upgraded) return;
+            Name += "+";
+            Upgraded = true;
+            poison = 8;
+            Description = "Apply 8 poison";
+        }
     }
 
     class Prepare : Card
     {
+        private int draw = 3;
         public Prepare()
         {
             Name = "Prepare";
@@ -137,16 +197,29 @@ namespace CardGame.Cards
 
             Rewardable = true;
             Exhaust = false;
+            Upgraded = false;
+            Innate = false;
         }
 
         public override void Play(Player player, Enemy enemy, Combat combat)
         {
-            player.DrawCards(3);
+            player.DrawCards(draw);
+        }
+
+        public override void Upgrade()
+        {
+            if (Upgraded) return;
+            Name += "+";
+            Upgraded = true;
+            draw = 4;
+            Description = "Draw 4 cards";
         }
     }
 
     class Concentrate : Card
     {
+        private int discard = 2;
+        private int energy = 1;
         public Concentrate()
         {
             Name = "Concentrate";
@@ -157,17 +230,28 @@ namespace CardGame.Cards
 
             Rewardable = true;
             Exhaust = false;
+            Upgraded = false;
+            Innate = false;
         }
 
         public override void Play(Player player, Enemy enemy, Combat combat)
         {
-            combat.DiscardFromHand(2);
-            player.Energy += 1;
+            combat.DiscardFromHand(discard);
+            player.Energy += energy;
+        }
+        public override void Upgrade()
+        {
+            if (Upgraded) return;
+            Name += "+";
+            Upgraded = true;
+            energy = 2;
+            Description = "Discard 2 cards, gain 2 energy";
         }
     }
 
     class Shiv : Card
     {
+        private int damage = 4;
         public Shiv()
         {
             Name = "Shiv";
@@ -178,14 +262,25 @@ namespace CardGame.Cards
 
             Rewardable = false;
             Exhaust = true;
+            Upgraded = false;
+            Innate = false;
         }
 
         public override void Play(Player player, Enemy enemy, Combat combat)
         {
-            int dmg = 4;
+            int dmg = damage;
             dmg = player.ModifyOutgoingDamage(dmg);
             dmg = enemy.ModifyIncomingDamage(dmg);
             enemy.TakeDamage(dmg);
+        }
+
+        public override void Upgrade()
+        {
+            if (Upgraded) return;
+            Name += "+";
+            Upgraded = true;
+            damage = 6;
+            Description = "Deal 6 damage. Exhaust.";
         }
     }
 
@@ -195,17 +290,28 @@ namespace CardGame.Cards
         {
             Name = "Infinite Blades";
             Cost = 1;
-            Description = "Add a Shiv into your hand every turn";
+            Description = "Add a Shiv into your hand every turn.";
             Type = CardType.Power;
             Rarity = Rarity.Uncommon;
 
             Rewardable = true;
             Exhaust = false;
+            Upgraded = false;
+            Innate = false;
         }
 
         public override void Play(Player player, Enemy enemy, Combat combat)
         {
             player.Passives.Add(new CreateShiv());
+        }
+
+        public override void Upgrade()
+        {
+            if (Upgraded) return;
+            Name += "+";
+            Upgraded = true;
+            Innate = true;
+            Description = "Innate. Add a Shiv into your hand every turn.";
         }
     }
 }
