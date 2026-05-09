@@ -66,10 +66,7 @@ namespace CardGame.Cards
         }
         public override void Play(Player player, Enemy enemy, Combat combat)
         {
-            int dmg = damage;
-            dmg = player.ModifyOutgoingDamage(dmg);
-            dmg = enemy.ModifyIncomingDamage(dmg);
-            enemy.TakeDamage(dmg);
+            combat.DealDamage(player, enemy, damage, this);
         }
 
         public override void Upgrade()
@@ -84,7 +81,7 @@ namespace CardGame.Cards
 
     class Defend : Card
     {
-        private int block;
+        private int block = 5;
         public Defend()
         {
             Name = "Defend";
@@ -134,10 +131,7 @@ namespace CardGame.Cards
 
         public override void Play(Player player, Enemy enemy, Combat combat)
         {
-            int dmg = damage;
-            dmg = player.ModifyOutgoingDamage(dmg);
-            dmg = enemy.ModifyIncomingDamage(dmg);
-            enemy.TakeDamage(dmg);
+            combat.DealDamage(player, enemy, damage, this);
             enemy.ApplyVulnerable(vulnerable);
         }
 
@@ -154,7 +148,7 @@ namespace CardGame.Cards
 
     class DeadlyPoison : Card
     {
-        private int poison;
+        private int poison = 5;
         public DeadlyPoison()
         {
             Name = "Deadly Poison";
@@ -268,10 +262,7 @@ namespace CardGame.Cards
 
         public override void Play(Player player, Enemy enemy, Combat combat)
         {
-            int dmg = damage;
-            dmg = player.ModifyOutgoingDamage(dmg);
-            dmg = enemy.ModifyIncomingDamage(dmg);
-            enemy.TakeDamage(dmg);
+            combat.DealDamage(player, enemy, damage, this);
         }
 
         public override void Upgrade()

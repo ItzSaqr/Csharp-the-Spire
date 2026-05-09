@@ -10,7 +10,7 @@ namespace CardGame.Enemies
     class EnemyIntent
     {
         public string Text;
-        public Action<Player, Enemy> Execute;
+        public Action<Player, Enemy, Combat> Execute;
     }
 
     abstract class Enemy : Character
@@ -20,9 +20,9 @@ namespace CardGame.Enemies
 
         public abstract void ChooseIntent();
 
-        public void ExecuteIntent(Player player)
+        public void ExecuteIntent(Player player, Combat combat)
         {
-            Intent.Execute(player, this);
+            Intent.Execute(player, this, combat);
         }
     }
 
@@ -45,12 +45,11 @@ namespace CardGame.Enemies
                 Intent = new EnemyIntent
                 {
                     Text = "Deals 7 damage",
-                    Execute = (player, self) =>
+                    Execute = (player, self, combat) =>
                     {
-                        int dmg = self.ModifyOutgoingDamage(7);
-                        dmg = player.ModifyIncomingDamage(dmg);
+                        int dmg = 7;
 
-                        player.TakeDamage(dmg);
+                        combat.DealDamage(self, player, dmg, null);
                     }
                 };
             }
@@ -59,12 +58,10 @@ namespace CardGame.Enemies
                 Intent = new EnemyIntent
                 {
                     Text = "Deals 4 damage, applies debuff",
-                    Execute = (player, self) =>
+                    Execute = (player, self, combat) =>
                     {
-                        int dmg = self.ModifyOutgoingDamage(4);
-                        dmg = player.ModifyIncomingDamage(dmg);
-
-                        player.TakeDamage(dmg);
+                        int dmg = 4;
+                        combat.DealDamage(self, player, dmg, null);
                         player.ApplyWeak(2);
                     }
                 };
@@ -91,7 +88,7 @@ namespace CardGame.Enemies
                 Intent = new EnemyIntent
                 {
                     Text = "Is going to buff",
-                    Execute = (player, self) =>
+                    Execute = (player, self, combat) =>
                     {
                         self.Passives.Add(new Enrage(2));
                     }
@@ -103,12 +100,11 @@ namespace CardGame.Enemies
                 Intent = new EnemyIntent
                 {
                     Text = "Deals 14 damage",
-                    Execute = (player, self) =>
+                    Execute = (player, self, combat) =>
                     {
-                        int dmg = self.ModifyOutgoingDamage(14);
-                        dmg = player.ModifyIncomingDamage(dmg);
+                        int dmg = 14;
 
-                        player.TakeDamage(dmg);
+                        combat.DealDamage(self, player, dmg, null);
                     }
                 };
             }
@@ -118,12 +114,11 @@ namespace CardGame.Enemies
                 Intent = new EnemyIntent
                 {
                     Text = "Deals 8 damage, applies debuff",
-                    Execute = (player, self) =>
+                    Execute = (player, self, combat) =>
                     {
-                        int dmg = self.ModifyOutgoingDamage(8);
-                        dmg = player.ModifyIncomingDamage(dmg);
+                        int dmg = 8;
 
-                        player.TakeDamage(dmg);
+                        combat.DealDamage(self, player, dmg, null);
                         player.ApplyVulnerable(2);
                     }
                 };

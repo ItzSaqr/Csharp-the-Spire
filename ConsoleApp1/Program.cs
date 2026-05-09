@@ -2,22 +2,29 @@
 using CardGame.Enemies;
 using CardGame.Passives;
 using CardGame.Rewards;
+using CardGame.Map;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics.Tracing;
 
-var player = new Player { Hp = 50, MaxHp = 50, MaxEnergy = 3 };
+var player = new Player { Hp = 500, MaxHp = 500, MaxEnergy = 3 };
 
-for (int i = 0; i < 2; i++)
-    player.Deck.Add(new Strike());
+//for (int i = 0; i < 2; i++)
+//    player.Deck.Add(new Strike());
 
-for (int i = 0; i < 2; i++)
-    player.Deck.Add(new Defend());
+//for (int i = 0; i < 2; i++)
+//    player.Deck.Add(new Defend());
 
-player.Deck.Add(new Bash());
-player.Deck.Add(new Prepare());
-player.Deck.Add(new Concentrate());
-player.Deck.Add(new InfiniteBlades());
+//player.Deck.Add(new Bash());
+//player.Deck.Add(new Prepare());
+//player.Deck.Add(new Concentrate());
+//player.Deck.Add(new InfiniteBlades());
 
-var enemy = new Snake();
+for (int i = 0; i < 20; i++) player.Deck.Add(new Shiv());
+
+player.Passives.Add(new PenNib());
+
+var enemy = new Gremlin();
 
 var ui = new ConsoleCombatUI();
 var combat = new Combat(player, enemy, ui);
@@ -89,7 +96,49 @@ while (combat.State != CombatState.Victory &&
         }
     }
 }
+RewardGenerator gen = new RewardGenerator();
+Reward reward;
 
+Console.WriteLine(combat.State);
+if (combat.State == CombatState.Victory)
+{
+    reward = gen.Generate(CombatType.Basic);
+    var card = ui.ChooseCardReward(reward);
+
+    PassiveEffect relic = null;
+    if (reward.Relics.Count > 0)
+        relic = ui.ChooseRelicReward(reward);
+
+    player.ApplyReward(reward, card, relic);
+
+    var restSite = new RestSite();
+    restSite.Enter(player, ui);
+}
+
+var shopCards = new List<Card>
+{
+    new DeadlyPoison(),
+    new Prepare(),
+    new Concentrate(),
+    new InfiniteBlades(),
+    new Strike(),
+    new Defend()
+};
+
+var shopRelics = new List<PassiveEffect>
+{
+    new Enrage(5),
+    new CreateShiv(),
+    new CreateShiv()
+};
+
+var shop = new Shop(shopCards, shopRelics);
+shop.Enter(player, ui);
+
+MapGenerator mapGenerator = new MapGenerator();
+GameMap map = mapGenerator.Generate();
+
+map.Print();
 
 static void ShowPile(string title, List<Card> pile)
 {
@@ -110,25 +159,6 @@ static void ShowPile(string title, List<Card> pile)
     Console.WriteLine();
     Console.WriteLine("Press Enter to return");
     Console.ReadLine();
-}
-
-RewardGenerator gen = new RewardGenerator();
-Reward reward;
-
-Console.WriteLine(combat.State);
-if (combat.State == CombatState.Victory)
-{
-    reward = gen.Generate(CombatType.Basic);
-    var card = ui.ChooseCardReward(reward);
-
-    PassiveEffect relic = null;
-    if (reward.Relics.Count > 0)
-        relic = ui.ChooseRelicReward(reward);
-
-    player.ApplyReward(reward, card, relic);
-
-    var restSite = new RestSite();
-    restSite.Enter(player, ui);
 }
 
 class Character
@@ -177,6 +207,11 @@ class Character
     {
         if (Vulnerable > 0) damage = (int)(damage * 1.5);
         return damage;
+    }
+
+    public int MultiplyDamage(int damage, int mult)
+    {
+        return (int)(damage * mult);
     }
 
     public void ApplyWeak(int amount)
@@ -496,6 +531,9 @@ class Combat
 
         Player.Hand.Remove(card);
 
+        foreach (var passive in Player.Passives) passive.OnBeforeCardPlayed(Player, this, card);
+        foreach (var passive in Enemy.Passives) passive.OnBeforeCardPlayed(Player, this, card);
+
         card.Play(Player, Enemy, this);
 
         foreach (var passive in Player.Passives) passive.OnCardPlayed(Player, this, card);
@@ -546,7 +584,7 @@ class Combat
 
         CheckEndCombat();
 
-        Enemy.ExecuteIntent(Player);
+        Enemy.ExecuteIntent(Player, this);
 
         CheckEndCombat();
 
@@ -562,6 +600,17 @@ class Combat
     {
         if (Enemy.Hp <= 0) State = CombatState.Victory;
         else if (Player.Hp <= 0) State = CombatState.Defeat;
+    }
+
+    public void DealDamage(Character source, Character target, int amount, Card? card)
+    {
+        amount = source.ModifyOutgoingDamage(amount);
+        amount = target.ModifyIncomingDamage(amount);
+
+        foreach (var passive in source.Passives)
+            amount = passive.ModifyDamage(source, target, card, amount);
+
+        target.TakeDamage(amount);
     }
 }
 
@@ -677,3 +726,156 @@ class RestSite
         }
     }
 }
+
+abstract class ShopItem
+{
+    public string Name;
+    public string Description;
+    public int Price;
+    public bool Sold;
+
+    public virtual bool CanBuy(Player player)
+    {
+        return !Sold && player.Gold >= Price;
+    }
+
+    public abstract void Buy(Player player, IUserInterface ui);
+}
+
+class CardShopItem : ShopItem
+{
+    private Card card;
+
+    public CardShopItem(Card card, int price)
+    {
+        this.card = card;
+        Name = card.Name;
+        Description = card.Description;
+        Price = price;
+    }
+
+    public override void Buy(Player player, IUserInterface ui)
+    {
+        if (CanBuy(player))
+        {
+            player.Gold -= Price;
+            player.Deck.Add(card);
+            Sold = true;
+        }
+    }
+}
+
+class RelicShopItem : ShopItem
+{
+    private PassiveEffect relic;
+
+    public RelicShopItem(PassiveEffect relic, int price)
+    {
+        this.relic = relic;
+        Name = relic.Name;
+        Description = relic.Description;
+        Price = price;
+    }
+
+    public override void Buy(Player player, IUserInterface ui)
+    {
+        if (CanBuy(player))
+        {
+            player.Gold -= Price;
+            player.Passives.Add(relic);
+            Sold = true;
+        }
+    }
+}
+
+class RemoveCardShopItem : ShopItem
+{
+    public RemoveCardShopItem(int price)
+    {
+        Name = "Card remove";
+        Description = "Remove a card from your deck";
+        Price = price;
+    }
+
+    public override bool CanBuy(Player player)
+    {
+        return !Sold && player.Gold >= Price && player.Deck.Count > 0;
+    }
+
+    public override void Buy(Player player, IUserInterface ui)
+    {
+        if (CanBuy(player))
+        {
+            var card = ui.ChooseCards(player, player.Deck, 1);
+
+            if (card.Count == 0) return;
+
+            player.Gold -= Price;
+            player.Deck.Remove(card[0]);
+            Sold = true;
+        }
+    }
+}
+
+class Shop
+{
+    private readonly List<ShopItem> items = new();
+
+    public Shop(List<Card> cards, List<PassiveEffect> relics)
+    {
+        foreach (var card in cards) items.Add(new CardShopItem(card, 50));
+
+        foreach (var relic in relics) items.Add(new RelicShopItem(relic, 150));
+
+        items.Add(new RemoveCardShopItem(75));
+    }
+
+    public void Enter(Player player, IUserInterface ui)
+    {
+        while (true)
+        {
+            Console.Clear();
+            Console.WriteLine("Shop");
+            Console.WriteLine("================================");
+            Console.WriteLine($"Hp: {player.Hp}/{player.MaxHp} | Gold: {player.Gold}");
+            Console.WriteLine();
+            Console.WriteLine("Options available:");
+            Console.WriteLine("================================");
+
+            for (int i = 0; i < items.Count; i++)
+            {
+                var item = items[i];
+                string state;
+
+                if (item.Sold)
+                    state = " [sold]";
+                else if (!item.CanBuy(player))
+                    state = " [too expensive]";
+                else
+                    state = "";
+
+                Console.WriteLine($"{i}.[{item.Price}] gold: {item.Name} - {item.Description}{state}");
+            }
+            Console.WriteLine("s - leave");
+            Console.WriteLine("================================");
+
+            var input = Console.ReadLine();
+
+            if (input == "s") break;
+
+            if (!int.TryParse(input, out int index))
+                continue;
+            if (index < 0 || index >= items.Count)
+                continue;
+
+            var chosen = items[index];
+
+            if (!chosen.CanBuy(player))
+                continue;
+
+            chosen.Buy(player, ui);
+            break;
+        }
+    }
+}
+
