@@ -1,4 +1,6 @@
 ﻿using CardGame.Passives;
+using CardGame.Char;
+using CardGame.CombatNamespace;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,20 +9,20 @@ using System.Threading.Tasks;
 
 namespace CardGame.Enemies
 {
-    class EnemyIntent
+    public class EnemyIntent
     {
         public string Text;
-        public Action<Player, Enemy, Combat> Execute;
+        public Action<Character, Enemy, Combat> Execute;
     }
 
-    abstract class Enemy : Character
+    public abstract class Enemy : Character
     {
         public string Name;
         public EnemyIntent Intent;
 
         public abstract void ChooseIntent();
 
-        public void ExecuteIntent(Player player, Combat combat)
+        public void ExecuteIntent(Character player, Combat combat)
         {
             Intent.Execute(player, this, combat);
         }

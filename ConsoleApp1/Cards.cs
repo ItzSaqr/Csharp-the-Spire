@@ -1,6 +1,8 @@
 ﻿using CardGame.Enemies;
 using CardGame.Passives;
+using CardGame.Char;
 using CardGame.Rewards;
+using CardGame.CombatNamespace;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +12,7 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace CardGame.Cards
 {
-    enum CardType
+    public enum CardType
     {
         Attack,
         Skill,
@@ -19,14 +21,14 @@ namespace CardGame.Cards
         Curse
     }
 
-    enum Rarity
+    public enum Rarity
     {
         Common,
         Uncommon,
         Rare
     }
 
-    abstract class Card
+    public abstract class Card
     {
         public string Name;
         public int Cost;

@@ -1,7 +1,8 @@
 ﻿using CardGame.Cards;
 using CardGame.Passives;
-using System.Reflection;
+using CardGame.CombatNamespace;
 using CardGame.Enemies;
+using System.Reflection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace CardGame.Rewards
 {
-    class Reward
+    public class Reward
     {
         public int Gold;
         public List<Card> CardChoices = new();

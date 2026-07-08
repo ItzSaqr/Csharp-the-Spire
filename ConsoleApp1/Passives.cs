@@ -1,4 +1,6 @@
 ﻿using CardGame.Cards;
+using CardGame.Char;
+using CardGame.CombatNamespace;
 using CardGame.Rewards;
 using System;
 using System.Collections.Generic;
@@ -8,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace CardGame.Passives
 {
-    abstract class PassiveEffect
+    public abstract class PassiveEffect
     {
         public string Name;
         public string Description;
@@ -26,7 +28,7 @@ namespace CardGame.Passives
         }
 
     }
-    enum PassiveType
+    public enum PassiveType
     {
         Power,
         CommonRelic,
