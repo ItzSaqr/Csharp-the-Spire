@@ -50,7 +50,7 @@ namespace CardGame.Cards
         }
     }
 
-    class Strike : Card
+    public class Strike : Card
     {
         private int damage = 6;
         public Strike()
@@ -81,7 +81,7 @@ namespace CardGame.Cards
         }
     }
 
-    class Defend : Card
+    public class Defend : Card
     {
         private int block = 5;
         public Defend()
@@ -113,7 +113,7 @@ namespace CardGame.Cards
         }
     }
 
-    class Bash : Card
+    public class Bash : Card
     {
         private int damage = 8;
         private int vulnerable = 2;
@@ -148,7 +148,7 @@ namespace CardGame.Cards
         }
     }
 
-    class DeadlyPoison : Card
+    public class DeadlyPoison : Card
     {
         private int poison = 5;
         public DeadlyPoison()
@@ -180,7 +180,7 @@ namespace CardGame.Cards
         }
     }
 
-    class Prepare : Card
+    public class Prepare : Card
     {
         private int draw = 3;
         public Prepare()
@@ -212,7 +212,7 @@ namespace CardGame.Cards
         }
     }
 
-    class Concentrate : Card
+    public class Concentrate : Card
     {
         private int discard = 3;
         private int energy = 2;
@@ -245,7 +245,7 @@ namespace CardGame.Cards
         }
     }
 
-    class Shiv : Card
+    public class Shiv : Card
     {
         private int damage = 4;
         public Shiv()
@@ -277,7 +277,7 @@ namespace CardGame.Cards
         }
     }
 
-    class InfiniteBlades : Card
+    public class InfiniteBlades : Card
     {
         public InfiniteBlades()
         {

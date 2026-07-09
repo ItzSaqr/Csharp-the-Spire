@@ -175,7 +175,7 @@ public interface IUserInterface
     PassiveEffect ChooseRelicReward(Reward reward);
 }
 
-class ConsoleCombatUI : IUserInterface
+public class ConsoleCombatUI : IUserInterface
 {
     public List<Card> ChooseCards(Player player, List<Card> source, int amount)
     {

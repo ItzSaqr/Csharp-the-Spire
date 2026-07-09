@@ -28,13 +28,14 @@ namespace CardGame.Enemies
         }
     }
 
-    class Snake : Enemy
+    public class Snake : Enemy
     {
         private int turn = 0;
         public Snake()
         {
             Name = "Snake";
             Hp = 26;
+            MaxHp = Hp;
             ChooseIntent();
         }
 
@@ -71,13 +72,14 @@ namespace CardGame.Enemies
         }
     }
 
-    class Gremlin : Enemy
+    public class Gremlin : Enemy
     {
         private int turn = 0;
         public Gremlin()
         {
             Name = "Gremlin";
             Hp = 85;
+            MaxHp = Hp;
             ChooseIntent();
         }
 

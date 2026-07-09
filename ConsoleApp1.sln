@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36310.24
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CardGame.Backend", "ConsoleApp1\CardGame.Backend.csproj", "{61E86732-8F4B-4C86-A4CE-D71596E5B549}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CardGame.Backend", "Core\CardGame.Backend.csproj", "{61E86732-8F4B-4C86-A4CE-D71596E5B549}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CardGame.WPF", "..\CardGame\CardGame\CardGame.WPF.csproj", "{D7363DAD-5A3F-BF8F-8614-84ACDFE00D92}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CardGame.WPF", "..\ConsoleApp1\CardGame\CardGame\CardGame.WPF.csproj", "{D7363DAD-5A3F-BF8F-8614-84ACDFE00D92}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
