@@ -145,11 +145,11 @@
                 <StackPanel>
 
                     <TextBlock Text="Effects"
-               FontSize="18"
-               Margin="10"/>
+                               FontSize="18"
+                               Margin="10"/>
 
                     <WrapPanel x:Name="EnemyEffectsPanel"
-               Margin="10"/>
+                               Margin="10"/>
 
                 </StackPanel>
 

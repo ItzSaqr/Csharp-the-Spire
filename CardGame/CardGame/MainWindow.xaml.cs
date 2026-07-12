@@ -143,15 +143,73 @@ namespace CardGame
             HandPanel.Children.Clear();
             foreach (var card in combat.Player.Hand)
             {
+                var costText = new TextBlock
+                {
+                    Text = $"[{card.Cost}]",
+                    FontSize = 20,
+                    FontWeight = FontWeights.Bold,
+                    TextAlignment = TextAlignment.Left,
+                    HorizontalAlignment = HorizontalAlignment.Left,
+                    VerticalAlignment = VerticalAlignment.Top
+                };
+                Grid.SetColumn(costText, 0);
+                Grid.SetRow(costText, 0);
+
+                var nameText = new TextBlock
+                {
+                    Text = card.Name,
+                    FontWeight = FontWeights.SemiBold,
+                    TextAlignment = TextAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Top,
+                    HorizontalAlignment = HorizontalAlignment.Center
+                };
+
+                Grid.SetColumn(nameText, 0);
+                Grid.SetRow(nameText, 1);
+                Grid.SetColumnSpan(nameText, 2);
+
+                var descText = new TextBlock
+                {
+                    Text = card.Description,
+                    TextWrapping = TextWrapping.Wrap,
+                    TextAlignment = TextAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+                Grid.SetRow(descText, 2);
+                Grid.SetColumn(descText, 0);
+                Grid.SetColumnSpan(descText, 2);
+
                 var button = new Button
                 {
                     Width = 120,
                     Height = 180,
                     Margin = new Thickness(5),
-                    Content = $"[{card.Cost}] {card.Name}\n{card.Description}",
+                    Padding = new Thickness(0),
+                    HorizontalContentAlignment = HorizontalAlignment.Stretch,
+                    VerticalContentAlignment = VerticalAlignment.Stretch,
+                    Content = new Grid
+                    {
+                        RowDefinitions =
+                        {
+                            new RowDefinition {Height = new GridLength(30)},
+                            new RowDefinition {Height = new GridLength(20)},
+                            new RowDefinition {Height = new GridLength(1, GridUnitType.Star)}
+                        },
+                        ColumnDefinitions =
+                        {
+                            new ColumnDefinition{Width = GridLength.Auto},
+                            new ColumnDefinition{Width = new GridLength(1, GridUnitType.Star)}
+                        },
+                        Children =
+                        {
+                            costText,
+                            nameText,
+                            descText
+                        }
+                    },
                     Tag = card,
                     BorderThickness = new Thickness(3),
-                    BorderBrush = GetBorderColor(card.Type)
+                    BorderBrush = GetBorderColor(card.Type),
                 };
                 button.Click += Card_Click;
 
