@@ -5,11 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CardGame"
         mc:Ignorable="d"
-        Title="MainWindow" Height="720" Width="1280">
+        Title="MainWindow" Height="900" Width="1600">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="250"/>
             <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="250"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -36,19 +37,24 @@
         
 
         <StackPanel Grid.Row="0"
-            Grid.Column="1"
+            Grid.Column="2"
             Margin="20"
             HorizontalAlignment="Center">
 
-            <TextBlock x:Name="EnemyNameText" FontSize="24"/>
-            <TextBlock x:Name="EnemyHpText" FontSize="24"/>
-            <TextBlock x:Name="EnemyBlockText" FontSize="24"/>
-            <TextBlock x:Name="EnemyIntentText" FontSize="18"/>
+            <TextBlock x:Name="EnemyNameText" 
+                       FontSize="24"/>
+            <TextBlock x:Name="EnemyHpText" 
+                       FontSize="24"/>
+            <TextBlock x:Name="EnemyBlockText" 
+                       FontSize="24"/>
+            <TextBlock x:Name="EnemyIntentText" 
+                       FontSize="18"
+                       TextWrapping="Wrap"/>
 
         </StackPanel>
 
         <ScrollViewer Grid.Row="2"
-              Grid.ColumnSpan="2"
+              Grid.ColumnSpan="3"
               HorizontalScrollBarVisibility="Auto"
               VerticalScrollBarVisibility="Disabled">
 
@@ -67,7 +73,7 @@
                 VerticalAlignment="Bottom" 
                 Margin="20" 
                 Grid.Row="3"
-                Grid.Column="1"
+                Grid.Column="2"
                 Click="EndTurn_Click">
         </Button>
 
@@ -83,11 +89,79 @@
 
         </StackPanel>
 
+        <Grid Grid.Row="1" Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0"
+               Text="Passives"
+               FontSize="18"
+               Margin="10"/>
+
+            <WrapPanel Grid.Row="1"
+               x:Name="PlayerPassivesPanel"
+               Margin="10"/>
+
+            <ScrollViewer Grid.Row="2"
+                  VerticalScrollBarVisibility="Auto">
+
+                <StackPanel>
+
+                    <TextBlock Text="Effects"
+                       FontSize="18"
+                       Margin="10"/>
+
+                    <WrapPanel x:Name="PlayerEffectsPanel"
+                       Margin="10"/>
+
+                </StackPanel>
+
+            </ScrollViewer>
+
+        </Grid>
+
+        <Grid Grid.Row="1" Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0"
+               Text="Passives"
+               FontSize="18"
+               Margin="10"/>
+
+            <WrapPanel Grid.Row="1"
+                       x:Name="EnemyPassivesPanel"
+                       Margin="10"/>
+
+            <ScrollViewer Grid.Row="2"
+                          VerticalScrollBarVisibility="Auto">
+
+                <StackPanel>
+
+                    <TextBlock Text="Effects"
+               FontSize="18"
+               Margin="10"/>
+
+                    <WrapPanel x:Name="EnemyEffectsPanel"
+               Margin="10"/>
+
+                </StackPanel>
+
+            </ScrollViewer>
+
+        </Grid>
+
         <Grid x:Name="PileOverlay"
               Grid.Row="0"
               Grid.RowSpan="4"
               Grid.Column="0"
-              Grid.ColumnSpan="2"
+              Grid.ColumnSpan="3"
               Visibility="Collapsed"
               Background="#AA000000"
               MouseLeftButtonDown="ClosePileOverlay_Click">

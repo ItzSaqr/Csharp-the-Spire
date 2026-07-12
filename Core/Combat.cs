@@ -84,9 +84,10 @@ namespace CardGame.CombatNamespace
 
             Player.Block = 0;
             Player.Energy = Player.MaxEnergy;
-            Player.DrawCards(5);
 
             foreach (var passive in Player.Passives) passive.OnTurnStart(Player, this);
+
+            Player.DrawCards(5);
         }
 
         public void EndPlayerTurn()

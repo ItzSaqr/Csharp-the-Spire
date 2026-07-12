@@ -119,6 +119,7 @@ namespace CardGame.Char
         public int Energy;
         public int MaxEnergy;
         public int Gold;
+        public int HandSize = 10;
 
         public List<Card> Deck = new();
         public List<Card> DrawPile = new();
@@ -141,6 +142,9 @@ namespace CardGame.Char
                     Reshuffle();
 
                 if (DrawPile.Count == 0)
+                    return;
+
+                if (Hand.Count >= HandSize)
                     return;
 
                 Card card = DrawPile[0];

@@ -27,6 +27,11 @@ namespace CardGame.Passives
             return damage;
         }
 
+        public virtual string GetDescription()
+        {
+            return null;
+        }
+
     }
     public enum PassiveType
     {
@@ -38,7 +43,7 @@ namespace CardGame.Passives
         BossRelic
     }
 
-    class CreateShiv : PassiveEffect
+    public class CreateShiv : PassiveEffect
     {
         public CreateShiv()
         {
@@ -52,9 +57,9 @@ namespace CardGame.Passives
         }
     }
 
-    class Enrage : PassiveEffect
+    public class Enrage : PassiveEffect
     {
-        private int amount;
+        public int amount;
         public Enrage(int amount)
         {
             Name = "Enrage";
@@ -70,9 +75,9 @@ namespace CardGame.Passives
         }
     }
 
-    class PenNib : PassiveEffect
+    public class PenNib : PassiveEffect
     {
-        private int AttacksPlayed;
+        public int AttacksPlayed;
         bool active;
         public PenNib()
         {
@@ -101,6 +106,11 @@ namespace CardGame.Passives
 
             active = false;
             return damage * 2;
+        }
+
+        public override string GetDescription()
+        {
+            return $"Attacks played: {AttacksPlayed}/10";
         }
     }
 }
