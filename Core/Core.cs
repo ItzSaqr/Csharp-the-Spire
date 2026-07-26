@@ -28,96 +28,96 @@ for (int i = 0; i < 20; i++) player.Deck.Add(new Shiv());
 
 player.Passives.Add(new PenNib());
 
-var enemy = new Gremlin();
+//var enemy = new Gremlin();
 
 var ui = new ConsoleCombatUI();
-var combat = new Combat(player, enemy, ui);
+//var combat = new Combat(player, enemy, ui);
 
-while (combat.State != CombatState.Victory &&
-       combat.State != CombatState.Defeat)
-{
-    if (combat.State == CombatState.PlayerTurn)
-    {
-        Console.Clear();
-        Console.WriteLine("================================");
-        Console.WriteLine($"PLAYER HP: {player.Hp} | Energy: {player.Energy}");
-        Console.WriteLine($"PLAYER: {player.GetStatusText()}");
+//while (combat.State != CombatState.Victory &&
+//       combat.State != CombatState.Defeat)
+//{
+//    if (combat.State == CombatState.PlayerTurn)
+//    {
+//        Console.Clear();
+//        Console.WriteLine("================================");
+//        Console.WriteLine($"PLAYER HP: {player.Hp} | Energy: {player.Energy}");
+//        Console.WriteLine($"PLAYER: {player.GetStatusText()}");
 
-        Console.WriteLine();
-        Console.WriteLine($"Draw: {player.DrawPile.Count} | Discard: {player.DiscardPile.Count} | Exhaust: {player.ExhaustPile.Count}");
-        Console.WriteLine($"View piles: 'd' - Draw Pile | 's' - Discard Pile | 'x' - Exhaust Pile");
+//        Console.WriteLine();
+//        Console.WriteLine($"Draw: {player.DrawPile.Count} | Discard: {player.DiscardPile.Count} | Exhaust: {player.ExhaustPile.Count}");
+//        Console.WriteLine($"View piles: 'd' - Draw Pile | 's' - Discard Pile | 'x' - Exhaust Pile");
 
-        Console.WriteLine();
+//        Console.WriteLine();
 
-        Console.WriteLine($"{enemy.Name} HP: {enemy.Hp}");
-        Console.WriteLine($"ENEMY: {enemy.GetStatusText()}");
-        Console.WriteLine($"INTENT: {enemy.Intent.Text}");
-        Console.WriteLine("================================");
+//        Console.WriteLine($"{enemy.Name} HP: {enemy.Hp}");
+//        Console.WriteLine($"ENEMY: {enemy.GetStatusText()}");
+//        Console.WriteLine($"INTENT: {enemy.Intent.Text}");
+//        Console.WriteLine("================================");
 
-        Console.WriteLine("HAND:");
+//        Console.WriteLine("HAND:");
 
-        for (int i = 0; i < player.Hand.Count; i++)
-        {
-            var c = player.Hand[i];
-            Console.WriteLine($"{i}. {c.Name} [{c.Cost}] - {c.Description}");
-        }
+//        for (int i = 0; i < player.Hand.Count; i++)
+//        {
+//            var c = player.Hand[i];
+//            Console.WriteLine($"{i}. {c.Name} [{c.Cost}] - {c.Description}");
+//        }
 
-        Console.WriteLine();
-        Console.WriteLine("Choose card index or 'e' to end turn:");
+//        Console.WriteLine();
+//        Console.WriteLine("Choose card index or 'e' to end turn:");
 
-        var input = Console.ReadLine();
+//        var input = Console.ReadLine();
 
-        Console.Clear();
+//        Console.Clear();
 
-        if (input == "e")
-        {
-            combat.EndPlayerTurn();
-            continue;
-        }
+//        if (input == "e")
+//        {
+//            combat.EndPlayerTurn();
+//            continue;
+//        }
 
-        if (input == "d")
-        {
-            ShowPile("Draw Pile:", player.DrawPile);
-            continue;
-        }
+//        if (input == "d")
+//        {
+//            ShowPile("Draw Pile:", player.DrawPile);
+//            continue;
+//        }
 
-        if (input == "s")
-        {
-            ShowPile("Discard Pile:", player.DiscardPile);
-            continue;
-        }
+//        if (input == "s")
+//        {
+//            ShowPile("Discard Pile:", player.DiscardPile);
+//            continue;
+//        }
 
-        if (input == "x")
-        {
-            ShowPile("Exhaust Pile:", player.ExhaustPile);
-            continue;
-        }
+//        if (input == "x")
+//        {
+//            ShowPile("Exhaust Pile:", player.ExhaustPile);
+//            continue;
+//        }
 
-        if (int.TryParse(input, out int index) &&
-            index >= 0 && index < player.Hand.Count)
-        {
-            combat.PlayCard(player.Hand[index]);
-        }
-    }
-}
-RewardGenerator gen = new RewardGenerator();
-Reward reward;
+//        if (int.TryParse(input, out int index) &&
+//            index >= 0 && index < player.Hand.Count)
+//        {
+//            combat.PlayCard(player.Hand[index]);
+//        }
+//    }
+//}
+//RewardGenerator gen = new RewardGenerator();
+//Reward reward;
 
-Console.WriteLine(combat.State);
-if (combat.State == CombatState.Victory)
-{
-    reward = gen.Generate(CombatType.Basic);
-    var card = ui.ChooseCardReward(reward);
+//Console.WriteLine(combat.State);
+//if (combat.State == CombatState.Victory)
+//{
+//    reward = gen.Generate(CombatType.Basic);
+//    var card = ui.ChooseCardReward(reward);
 
-    PassiveEffect relic = null;
-    if (reward.Relics.Count > 0)
-        relic = ui.ChooseRelicReward(reward);
+//    PassiveEffect relic = null;
+//    if (reward.Relics.Count > 0)
+//        relic = ui.ChooseRelicReward(reward);
 
-    player.ApplyReward(reward, card, relic);
+//    player.ApplyReward(reward, card, relic);
 
-    var restSite = new RestSite();
-    restSite.Enter(player, ui);
-}
+//    var restSite = new RestSite();
+//    restSite.Enter(player, ui);
+//}
 
 var shopCards = new List<Card>
 {

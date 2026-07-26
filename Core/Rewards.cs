@@ -18,7 +18,7 @@ namespace CardGame.Rewards
         public List<PassiveEffect> Relics = new();
     }
 
-    class RewardGenerator
+    public class RewardGenerator
     {
         private Random rand = new Random();
 

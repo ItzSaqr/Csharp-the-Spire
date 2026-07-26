@@ -7,65 +7,67 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="900" Width="1600">
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="250"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="250"/>
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <!-- информация -->
-            
-            <RowDefinition Height="*"/>
-            <!-- поле боя -->
-            
-            <RowDefinition Height="240"/>
-            <!-- рука -->
-            
-            <RowDefinition Height="80"/>
-            <!-- кнопки -->
-        </Grid.RowDefinitions>
-        <StackPanel Grid.Row="0"
+        <Grid x:Name="CombatUI">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="250"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="250"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <!-- информация -->
+
+                <RowDefinition Height="*"/>
+                <!-- поле боя -->
+
+                <RowDefinition Height="240"/>
+                <!-- рука -->
+
+                <RowDefinition Height="80"/>
+                <!-- кнопки -->
+            </Grid.RowDefinitions>
+            <StackPanel Grid.Row="0"
             Grid.Column="0"
             Margin="20">
 
-            <TextBlock x:Name="HpText" FontSize="24"/>
-            <TextBlock x:Name="BlockText" FontSize="24"/>
-            <TextBlock x:Name="EnergyText" FontSize="24"/>
+                <TextBlock x:Name="HpText" FontSize="24"/>
+                <TextBlock x:Name="BlockText" FontSize="24"/>
+                <TextBlock x:Name="EnergyText" FontSize="24"/>
 
-        </StackPanel>
-        
+            </StackPanel>
 
-        <StackPanel Grid.Row="0"
+
+            <StackPanel Grid.Row="0"
             Grid.Column="2"
             Margin="20"
             HorizontalAlignment="Center">
 
-            <TextBlock x:Name="EnemyNameText" 
+                <TextBlock x:Name="EnemyNameText" 
                        FontSize="24"/>
-            <TextBlock x:Name="EnemyHpText" 
+                <TextBlock x:Name="EnemyHpText" 
                        FontSize="24"/>
-            <TextBlock x:Name="EnemyBlockText" 
+                <TextBlock x:Name="EnemyBlockText" 
                        FontSize="24"/>
-            <TextBlock x:Name="EnemyIntentText" 
+                <TextBlock x:Name="EnemyIntentText" 
                        FontSize="18"
                        TextWrapping="Wrap"/>
 
-        </StackPanel>
+            </StackPanel>
 
-        <ScrollViewer Grid.Row="2"
+            <ScrollViewer Grid.Row="2"
               Grid.ColumnSpan="3"
               HorizontalScrollBarVisibility="Auto"
               VerticalScrollBarVisibility="Disabled">
 
-            <StackPanel x:Name="HandPanel"
+                <StackPanel x:Name="HandPanel"
                 HorizontalAlignment="Center"
                 Orientation="Horizontal"
                 Margin="20"/>
 
-        </ScrollViewer>
+            </ScrollViewer>
 
-        <Button x:Name="EndTurnButton" 
+            <Button x:Name="EndTurnButton" 
                 Content="End Turn" 
                 Width="100" 
                 Height="40" 
@@ -75,89 +77,89 @@
                 Grid.Row="3"
                 Grid.Column="2"
                 Click="EndTurn_Click">
-        </Button>
+            </Button>
 
-        <StackPanel Grid.Row="3"
+            <StackPanel Grid.Row="3"
             Grid.Column="1"
             Orientation="Horizontal"
             HorizontalAlignment="Left"
             Margin="20">
 
-            <Button Content="Draw" Width="100" Click="ViewDrawPile_Click"/>
-            <Button Content="Discard" Width="100" Margin="10,0,0,0" Click="ViewDiscardPile_Click"/>
-            <Button Content="Exhaust" Width="100" Margin="10,0,0,0" Click="ViewExhaustPile_Click"/>
+                <Button Content="Draw" Width="100" Click="ViewDrawPile_Click"/>
+                <Button Content="Discard" Width="100" Margin="10,0,0,0" Click="ViewDiscardPile_Click"/>
+                <Button Content="Exhaust" Width="100" Margin="10,0,0,0" Click="ViewExhaustPile_Click"/>
 
-        </StackPanel>
+            </StackPanel>
 
-        <Grid Grid.Row="1" Grid.Column="0">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+            <Grid Grid.Row="1" Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
 
-            <TextBlock Grid.Row="0"
+                <TextBlock Grid.Row="0"
                Text="Passives"
                FontSize="18"
                Margin="10"/>
 
-            <WrapPanel Grid.Row="1"
+                <WrapPanel Grid.Row="1"
                x:Name="PlayerPassivesPanel"
                Margin="10"/>
 
-            <ScrollViewer Grid.Row="2"
+                <ScrollViewer Grid.Row="2"
                   VerticalScrollBarVisibility="Auto">
 
-                <StackPanel>
+                    <StackPanel>
 
-                    <TextBlock Text="Effects"
+                        <TextBlock Text="Effects"
                        FontSize="18"
                        Margin="10"/>
 
-                    <WrapPanel x:Name="PlayerEffectsPanel"
+                        <WrapPanel x:Name="PlayerEffectsPanel"
                        Margin="10"/>
 
-                </StackPanel>
+                    </StackPanel>
 
-            </ScrollViewer>
+                </ScrollViewer>
 
-        </Grid>
+            </Grid>
 
-        <Grid Grid.Row="1" Grid.Column="2">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+            <Grid Grid.Row="1" Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
 
-            <TextBlock Grid.Row="0"
+                <TextBlock Grid.Row="0"
                Text="Passives"
                FontSize="18"
                Margin="10"/>
 
-            <WrapPanel Grid.Row="1"
+                <WrapPanel Grid.Row="1"
                        x:Name="EnemyPassivesPanel"
                        Margin="10"/>
 
-            <ScrollViewer Grid.Row="2"
+                <ScrollViewer Grid.Row="2"
                           VerticalScrollBarVisibility="Auto">
 
-                <StackPanel>
+                    <StackPanel>
 
-                    <TextBlock Text="Effects"
+                        <TextBlock Text="Effects"
                                FontSize="18"
                                Margin="10"/>
 
-                    <WrapPanel x:Name="EnemyEffectsPanel"
+                        <WrapPanel x:Name="EnemyEffectsPanel"
                                Margin="10"/>
 
-                </StackPanel>
+                    </StackPanel>
 
-            </ScrollViewer>
+                </ScrollViewer>
 
-        </Grid>
+            </Grid>
 
-        <Grid x:Name="PileOverlay"
+            <Grid x:Name="PileOverlay"
               Grid.Row="0"
               Grid.RowSpan="4"
               Grid.Column="0"
@@ -166,7 +168,7 @@
               Background="#AA000000"
               MouseLeftButtonDown="ClosePileOverlay_Click">
 
-            <Border Width="700"
+                <Border Width="700"
                     Height="500"
                     Background="#222"
                     CornerRadius="10"
@@ -175,12 +177,18 @@
                     MouseLeftButtonDown="BorderPile_Click">
 
 
-                <ScrollViewer>
-                    <WrapPanel x:Name="PilePanel"/>
-                </ScrollViewer>
+                    <ScrollViewer>
+                        <WrapPanel x:Name="PilePanel"/>
+                    </ScrollViewer>
 
-            </Border>
+                </Border>
 
+            </Grid>
         </Grid>
+    </Grid>
+    <Grid x:Name="MapUI" Visibility="Visible">
+        <ContentControl x:Name="MapContent"/>
+    </Grid>
+
     </Grid>
 </Window>

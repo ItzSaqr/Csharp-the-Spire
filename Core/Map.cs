@@ -10,7 +10,7 @@ using CardGame.Rewards;
 
 namespace CardGame.Map
 {
-    enum NodeType
+    public enum NodeType
     {
         BasicEnemy,
         EliteEnemy,
@@ -20,12 +20,13 @@ namespace CardGame.Map
         RestSite
     }
 
-    class MapNode
+    public class MapNode
     {
         public int Floor;
         public int Index;
-        public bool Selected;
         public bool Active;
+        public bool Available;
+        public bool Visited;
 
         public NodeType Type;
         public List<MapNode> Next = new();
@@ -34,7 +35,7 @@ namespace CardGame.Map
         public bool HasAnyPath => Next.Count > 0 || Prev.Count > 0;
     }
 
-    class GameMap
+    public class GameMap
     {
         public List<List<MapNode>> Floors = new();
         public MapNode Boss;
@@ -45,6 +46,8 @@ namespace CardGame.Map
 
             const int cellWidth = 6;
 
+            PrintBoss(cellWidth);
+
             for (int floor = Floors.Count - 1; floor >= 0; floor--)
             {
                 PrintNodeRow(floor, cellWidth);
@@ -52,8 +55,6 @@ namespace CardGame.Map
                 if (floor > 0)
                     PrintConnectionRow(floor, cellWidth);
             }
-
-            PrintBoss(cellWidth);
         }
 
         private void PrintNodeRow(int floor, int cellWidth)
@@ -104,7 +105,7 @@ namespace CardGame.Map
 
         private char GetNodeSymbol(MapNode node)
         {
-            if (node.Selected)
+            if (!node.Active)
                 return '@';
 
             return node.Type switch
@@ -129,7 +130,7 @@ namespace CardGame.Map
 
     }
 
-    class MapGenerator
+    public class MapGenerator
     {
         private const int Width = 7;
         private const int Height = 15;
@@ -145,8 +146,28 @@ namespace CardGame.Map
             RemovePathlessRooms(map);
             AssignRoomTypes(map);
             AddBossRoom(map);
+            SetStartNode(map);
 
             return map;
+        }
+
+        private void SetStartNode(GameMap map)
+        {
+            // Находим первый активный узел на первом этаже
+            // Или центральный, если активных нет
+            var startNode = map.Floors[0].FirstOrDefault(n => n.Active);
+
+            if (startNode == null)
+            {
+                // Если нет активных узлов, активируем центральный
+                startNode = map.Floors[0][Width / 2];
+                startNode.Active = true;
+                startNode.Type = NodeType.BasicEnemy;
+                System.Diagnostics.Debug.WriteLine($"Fallback: Center node set as start");
+            }
+
+            startNode.Available = true;
+            System.Diagnostics.Debug.WriteLine($"Start node set at Floor 0, Index {startNode.Index}, Type: {startNode.Type}");
         }
 
         private GameMap CreateFullGrid()
@@ -273,7 +294,18 @@ namespace CardGame.Map
             {
                 foreach (var node in floor)
                 {
-                    node.Active = node.HasAnyPath;
+                    // Для первого этажа - оставляем активными только узлы, у которых есть путь
+                    // ИЛИ центральный узел (стартовый)
+                    if (node.Floor == 0)
+                    {
+                        // На первом этаже активны только узлы с путями
+                        // Но один узел будет стартовым (у него может не быть путей)
+                        node.Active = node.HasAnyPath;
+                    }
+                    else
+                    {
+                        node.Active = node.HasAnyPath;
+                    }
                 }
             }
         }
@@ -285,7 +317,7 @@ namespace CardGame.Map
             if (roll < 60) return NodeType.BasicEnemy;
             if (roll < 76) return NodeType.EliteEnemy;
             if (roll < 88) return NodeType.RestSite;
-            if (roll < 95) return NodeType.Shop;
+            if (roll < 98) return NodeType.Shop;
             return NodeType.Treasure;
         }
 
@@ -332,6 +364,20 @@ namespace CardGame.Map
                     }
 
                     node.Type = RollRoomType(floor);
+                }
+            }
+        }
+
+        public void PrintMapInfo(GameMap map)
+        {
+            Console.WriteLine("Map Info:");
+            for (int floor = 0; floor < map.Floors.Count; floor++)
+            {
+                var activeNodes = map.Floors[floor].Where(n => n.Active).ToList();
+                Console.WriteLine($"Floor {floor}: {activeNodes.Count} active nodes");
+                foreach (var node in activeNodes)
+                {
+                    Console.WriteLine($"  Node {node.Index}: Type={node.Type}, Available={node.Available}, HasPath={node.HasAnyPath}");
                 }
             }
         }

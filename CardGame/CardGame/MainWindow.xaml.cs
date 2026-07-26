@@ -3,6 +3,8 @@ using CardGame.Cards;
 using CardGame.Enemies;
 using CardGame.CombatNamespace;
 using CardGame.Passives;
+using CardGame.Map;
+using CardGame.Rewards;
 using CardGame;
 using System.Text;
 using System.Windows;
@@ -17,35 +19,123 @@ using System.Windows.Shapes;
 
 namespace CardGame
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
+    public class Game
+    {
+        public Player Player;
+        public GameMap Map;
+        public MapNode CurrentNode;
+        public Combat? Combat;
+
+        public void StartRun()
+        {
+            Player = new Player { Hp = 80, MaxHp = 80, MaxEnergy = 3 };
+
+            for (int i = 0; i < 5; i++) Player.Deck.Add(new Strike());
+            for (int i = 0; i < 5; i++) Player.Deck.Add(new Defend());
+            Player.Deck.Add(new Bash());
+
+            Map = new MapGenerator().Generate();
+
+            // Устанавливаем начальный узел как доступный
+
+            var startFloor = Map.Floors[0];
+            foreach (var node in startFloor)
+            {
+                if (node.Active)
+                {
+                    node.Available = true;
+                }
+            }
+        }
+
+        public void EnterNode(MapNode node)
+        {
+            CurrentNode = node;
+            node.Visited = true;
+            node.Available = false;
+
+            // открыть следующие узлы за завершенным
+            foreach (var next in node.Next)
+            {
+                next.Available = true;
+            }
+
+            switch (node.Type)
+            {
+                case NodeType.BasicEnemy:
+                    StartCombat(new Snake(), CombatType.Basic);
+                    break;
+                case NodeType.EliteEnemy:
+                    StartCombat(new Gremlin(), CombatType.Elite);
+                    break;
+                case NodeType.Boss:
+                    StartCombat(new Gremlin(), CombatType.Boss);
+                    break;
+                case NodeType.RestSite:
+                    // TODO: Показать костер
+                    break;
+                case NodeType.Shop:
+                    // TODO: Показать магазин
+                    break;
+                case NodeType.Treasure:
+                    // TODO: Показать сундук
+                    break;
+            }
+
+            foreach (var nod in Map.Floors[node.Floor])
+            {
+                nod.Available = false;
+            }
+        }
+
+        public void StartCombat(Enemy enemy, CombatType type)
+        {
+            Combat = new Combat(Player, enemy, new ConsoleCombatUI());
+        }
+    }
     public partial class MainWindow : Window
     {
         public Combat combat;
+        private Game game;
+        private MapView mapView;
+
         public MainWindow()
         {
             InitializeComponent();
-
             StartGame();
         }
 
         private void StartGame()
         {
-            var player = new Player { Hp = 80, MaxHp = 80, MaxEnergy = 3 };
+            game = new Game();
+            game.StartRun();
 
-            for (int i = 0; i < 5; i++) player.Deck.Add(new Strike());
-            for (int i = 0; i < 5; i++) player.Deck.Add(new Defend());
-            player.Deck.Add(new Bash());
-            player.Deck.Add(new InfiniteBlades());
-            for (int i = 0; i < 9; i++) player.Deck.Add(new InfiniteBlades());
-            player.Passives.Add(new PenNib());
+            ShowMap();
+        }
 
-            var enemy = new Gremlin();
+        public void ShowMap()
+        {
+            MapUI.Visibility = Visibility.Visible;
+            CombatUI.Visibility = Visibility.Collapsed;
 
-            combat = new Combat(player, enemy, new ConsoleCombatUI());
+            MapContent.Content = new MapView(game.Map, game, this);
+        }
 
+        public void SwitchToCombat()
+        {
+            MapUI.Visibility = Visibility.Collapsed;
+            CombatUI.Visibility = Visibility.Visible;
+
+            combat = game.Combat;
             UpdateUI();
+        }
+
+        public void SwitchToMap()
+        {
+            CombatUI.Visibility = Visibility.Collapsed;
+            MapUI.Visibility = Visibility.Visible;
+
+            MapContent.Content = new MapView(game.Map, game, this);
         }
 
         private void UpdateUI()
@@ -73,12 +163,45 @@ namespace CardGame
 
             combat.PlayCard(card);
             UpdateUI();
+
+            if (combat.State == CombatState.Victory)
+            {
+                ShowReward();
+            }
+            else if (combat.State == CombatState.Defeat)
+            {
+                MessageBox.Show("You died!");
+            }
         }
 
         private void EndTurn_Click(object sender, RoutedEventArgs e)
         {
             combat.EndPlayerTurn();
             UpdateUI();
+
+            if (combat.State == CombatState.Victory)
+            {
+                ShowReward();
+            }
+            else if (combat.State == CombatState.Defeat)
+            {
+                MessageBox.Show("You died!");
+            }
+        }
+
+        private void ShowReward()
+        {
+            var generator = new RewardGenerator();
+            var reward = generator.Generate(combat.Enemy switch
+            {
+                Snake => CombatType.Basic,
+                Gremlin => CombatType.Elite,
+                _ => CombatType.Basic
+            });
+
+            // TODO: Показать выбор награды
+            // После выбора вернуться на карту
+            SwitchToMap();
         }
 
         private void ViewPile(List<Card> cards)
@@ -136,6 +259,16 @@ namespace CardGame
         private void BorderPile_Click(object sender, RoutedEventArgs e)
         {
             e.Handled = true; 
+        }
+
+        enum GameState
+        {
+            Map,
+            Combat,
+            Reward,
+            Shop,
+            Campfire,
+            Gameover
         }
 
         private void DrawHand()
