@@ -205,13 +205,20 @@ namespace CardGame
             if (!node.Available || node.Visited) return;
 
             game.EnterNode(node);
-            mainWindow.SwitchToCombat();
+
+            // Проверяем тип узла перед переключением на бой
+            if (node.Type != NodeType.RestSite &&
+                node.Type != NodeType.Shop &&
+                node.Type != NodeType.Treasure)
+            {
+                mainWindow.SwitchToCombat();
+            }
+            // Для RestSite, Shop, Treasure - переключение происходит внутри Game.EnterNode
         }
 
         private void UpdateInfo()
         {
             var player = game.Player;
-            FloorText.Text = $"Floor: {game.CurrentNode?.Floor ?? 0}";
             HpText.Text = $"HP: {player.Hp}/{player.MaxHp}";
             GoldText.Text = $"💰 {player.Gold}";
         }

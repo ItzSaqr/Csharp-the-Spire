@@ -22,6 +22,8 @@ namespace CardGame.Passives
 
         public virtual void OnBeforeCardPlayed(Character player, Combat combat, Card card) { }
 
+        public virtual void OnCombatStart(Character player, Combat combat) { }
+
         public virtual int ModifyDamage(Character source, Character target, Card? card, int damage)
         {
             return damage;
@@ -32,6 +34,7 @@ namespace CardGame.Passives
             return null;
         }
 
+        public virtual void RestOptionUse() { }
     }
     public enum PassiveType
     {
@@ -77,8 +80,8 @@ namespace CardGame.Passives
 
     public class PenNib : PassiveEffect
     {
-        public int AttacksPlayed;
-        bool active;
+        private int AttacksPlayed;
+        private bool active;
         public PenNib()
         {
             Name = "Pen Nib";
@@ -111,6 +114,34 @@ namespace CardGame.Passives
         public override string GetDescription()
         {
             return $"Attacks played: {AttacksPlayed}/10";
+        }
+    }
+
+    public class Girya : PassiveEffect
+    {
+        public int strength;
+
+        public Girya()
+        {
+            Name = "Girya";
+            Description = "You can now gain Strength at Rest Sites. (3 times max)";
+            Type = PassiveType.RareRelic;
+            strength = 0;
+        }
+
+        public override void OnCombatStart(Character owner, Combat combat)
+        {
+            owner.ApplyStrength(strength);
+        }
+
+        public override void RestOptionUse()
+        {
+            if (strength < 3) strength += 1;
+        }
+
+        public override string GetDescription()
+        {
+            return $"Strength gained: {strength}/3";
         }
     }
 }

@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:CardGame"
         mc:Ignorable="d"
         Title="MainWindow" Height="900" Width="1600">
-    <Grid>
+    <Grid Background="#8c8c96">
         <Grid x:Name="CombatUI">
         <Grid>
             <Grid.ColumnDefinitions>
@@ -21,7 +21,7 @@
                 <RowDefinition Height="*"/>
                 <!-- поле боя -->
 
-                <RowDefinition Height="240"/>
+                <RowDefinition Height="260"/>
                 <!-- рука -->
 
                 <RowDefinition Height="80"/>
@@ -186,9 +186,11 @@
             </Grid>
         </Grid>
     </Grid>
-    <Grid x:Name="MapUI" Visibility="Visible">
-        <ContentControl x:Name="MapContent"/>
-    </Grid>
-
+        <Grid x:Name="MapUI" Visibility="Visible">
+            <ContentControl x:Name="MapContent"/>
+        </Grid>
+        <Grid x:Name="RestUI" Visibility="Collapsed">
+            <ContentControl x:Name="RestContent"/>
+        </Grid>
     </Grid>
 </Window>

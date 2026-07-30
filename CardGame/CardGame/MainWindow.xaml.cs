@@ -25,6 +25,7 @@ namespace CardGame
         public GameMap Map;
         public MapNode CurrentNode;
         public Combat? Combat;
+        private MainWindow mainWindow;
 
         public void StartRun()
         {
@@ -48,6 +49,11 @@ namespace CardGame
             }
         }
 
+        public void setMainWindow(MainWindow window)
+        {
+            mainWindow = window;
+        }
+
         public void EnterNode(MapNode node)
         {
             CurrentNode = node;
@@ -64,15 +70,18 @@ namespace CardGame
             {
                 case NodeType.BasicEnemy:
                     StartCombat(new Snake(), CombatType.Basic);
+                    mainWindow?.SwitchToCombat();
                     break;
                 case NodeType.EliteEnemy:
                     StartCombat(new Gremlin(), CombatType.Elite);
+                    mainWindow?.SwitchToCombat();
                     break;
                 case NodeType.Boss:
                     StartCombat(new Gremlin(), CombatType.Boss);
+                    mainWindow?.SwitchToCombat();
                     break;
                 case NodeType.RestSite:
-                    // TODO: Показать костер
+                    mainWindow?.SwitchToCampfire();
                     break;
                 case NodeType.Shop:
                     // TODO: Показать магазин
@@ -92,23 +101,35 @@ namespace CardGame
         {
             Combat = new Combat(Player, enemy, new ConsoleCombatUI());
         }
+
+        public void ShowCampfire()
+        {
+            mainWindow?.SwitchToCampfire();
+        }
     }
     public partial class MainWindow : Window
     {
         public Combat combat;
         private Game game;
         private MapView mapView;
+        private RestView restView;
 
         public MainWindow()
         {
             InitializeComponent();
+
             StartGame();
         }
 
         private void StartGame()
         {
             game = new Game();
+            game.setMainWindow(this);
             game.StartRun();
+
+            restView = new RestView();
+            restView.SetPlayer(game.Player);
+            RestContent.Content = restView;
 
             ShowMap();
         }
@@ -117,6 +138,7 @@ namespace CardGame
         {
             MapUI.Visibility = Visibility.Visible;
             CombatUI.Visibility = Visibility.Collapsed;
+            RestUI.Visibility = Visibility.Collapsed;
 
             MapContent.Content = new MapView(game.Map, game, this);
         }
@@ -124,6 +146,7 @@ namespace CardGame
         public void SwitchToCombat()
         {
             MapUI.Visibility = Visibility.Collapsed;
+            RestUI.Visibility = Visibility.Collapsed;
             CombatUI.Visibility = Visibility.Visible;
 
             combat = game.Combat;
@@ -133,9 +156,21 @@ namespace CardGame
         public void SwitchToMap()
         {
             CombatUI.Visibility = Visibility.Collapsed;
+            RestUI.Visibility = Visibility.Collapsed;
             MapUI.Visibility = Visibility.Visible;
 
             MapContent.Content = new MapView(game.Map, game, this);
+        }
+
+        public void SwitchToCampfire()
+        {
+            MapUI.Visibility = Visibility.Collapsed;
+            CombatUI.Visibility = Visibility.Collapsed;
+            RestUI.Visibility = Visibility.Visible;
+
+            restView.SetPlayer(game.Player);
+            restView.SetOnRestComplete(SwitchToMap);
+            restView.DrawScene(game.Player);
         }
 
         private void UpdateUI()
@@ -209,31 +244,11 @@ namespace CardGame
             PilePanel.Children.Clear();
             foreach (var card in cards)
             {
-                var button = new Button
-                {
-                    Width = 120,
-                    Height = 180,
-                    Margin = new Thickness(5),
-                    Content = $"[{card.Cost}] {card.Name}\n{card.Description}",
-                    BorderThickness = new Thickness(3),
-                    BorderBrush = GetBorderColor(card.Type)
-                };
-
+                var button = CreateCardButton(card);
                 PilePanel.Children.Add(button);
             }
 
             PileOverlay.Visibility = Visibility.Visible;
-        }
-
-        private Brush GetBorderColor(CardType type)
-        {
-            return type switch
-            {
-                CardType.Attack => Brushes.Red,
-                CardType.Skill => Brushes.Blue,
-                CardType.Power => Brushes.Gold,
-                _ => Brushes.Gray,
-            };
         }
 
         private void ViewDrawPile_Click(object sender, RoutedEventArgs e)
@@ -276,74 +291,7 @@ namespace CardGame
             HandPanel.Children.Clear();
             foreach (var card in combat.Player.Hand)
             {
-                var costText = new TextBlock
-                {
-                    Text = $"[{card.Cost}]",
-                    FontSize = 20,
-                    FontWeight = FontWeights.Bold,
-                    TextAlignment = TextAlignment.Left,
-                    HorizontalAlignment = HorizontalAlignment.Left,
-                    VerticalAlignment = VerticalAlignment.Top
-                };
-                Grid.SetColumn(costText, 0);
-                Grid.SetRow(costText, 0);
-
-                var nameText = new TextBlock
-                {
-                    Text = card.Name,
-                    FontWeight = FontWeights.SemiBold,
-                    TextAlignment = TextAlignment.Center,
-                    VerticalAlignment = VerticalAlignment.Top,
-                    HorizontalAlignment = HorizontalAlignment.Center
-                };
-
-                Grid.SetColumn(nameText, 0);
-                Grid.SetRow(nameText, 1);
-                Grid.SetColumnSpan(nameText, 2);
-
-                var descText = new TextBlock
-                {
-                    Text = card.Description,
-                    TextWrapping = TextWrapping.Wrap,
-                    TextAlignment = TextAlignment.Center,
-                    VerticalAlignment = VerticalAlignment.Center
-                };
-                Grid.SetRow(descText, 2);
-                Grid.SetColumn(descText, 0);
-                Grid.SetColumnSpan(descText, 2);
-
-                var button = new Button
-                {
-                    Width = 120,
-                    Height = 180,
-                    Margin = new Thickness(5),
-                    Padding = new Thickness(0),
-                    HorizontalContentAlignment = HorizontalAlignment.Stretch,
-                    VerticalContentAlignment = VerticalAlignment.Stretch,
-                    Content = new Grid
-                    {
-                        RowDefinitions =
-                        {
-                            new RowDefinition {Height = new GridLength(30)},
-                            new RowDefinition {Height = new GridLength(20)},
-                            new RowDefinition {Height = new GridLength(1, GridUnitType.Star)}
-                        },
-                        ColumnDefinitions =
-                        {
-                            new ColumnDefinition{Width = GridLength.Auto},
-                            new ColumnDefinition{Width = new GridLength(1, GridUnitType.Star)}
-                        },
-                        Children =
-                        {
-                            costText,
-                            nameText,
-                            descText
-                        }
-                    },
-                    Tag = card,
-                    BorderThickness = new Thickness(3),
-                    BorderBrush = GetBorderColor(card.Type),
-                };
+                var button = CreateCardButton(card);
                 button.Click += Card_Click;
 
                 HandPanel.Children.Add(button);
@@ -655,6 +603,112 @@ namespace CardGame
                 ToolTipService.SetInitialShowDelay(button, 100);
                 EnemyEffectsPanel.Children.Add(button);
             }
+        }
+
+        private Button CreateCardButton(Card card)
+        {
+            var button = new Button
+            {
+                Width = 140,
+                Height = 200,
+                Margin = new Thickness(8),
+                Tag = card,
+                BorderThickness = new Thickness(3),
+                BorderBrush = GetCardBorderColor(card.Type),
+                Background = new SolidColorBrush(Color.FromRgb(30, 30, 50)),
+                Cursor = System.Windows.Input.Cursors.Hand
+            };
+
+            // Создаем контент карты
+            var grid = new Grid
+            {
+                RowDefinitions =
+                {
+                    new RowDefinition { Height = new GridLength(30) },
+                    new RowDefinition { Height = new GridLength(25) },
+                    new RowDefinition { Height = new GridLength(1, GridUnitType.Star) },
+                    new RowDefinition { Height = new GridLength(25) }
+                },
+                ColumnDefinitions =
+                {
+                    new ColumnDefinition { Width = GridLength.Auto },
+                    new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }
+                }
+            };
+
+            // Стоимость
+            var costText = new TextBlock
+            {
+                Text = $"[{card.Cost}]",
+                FontSize = 18,
+                FontWeight = FontWeights.Bold,
+                Foreground = Brushes.White,
+                Margin = new Thickness(5, 0, 0, 0)
+            };
+            Grid.SetRow(costText, 0);
+            Grid.SetColumn(costText, 0);
+            grid.Children.Add(costText);
+
+            // Название
+            var nameText = new TextBlock
+            {
+                Text = card.Name,
+                FontSize = 16,
+                FontWeight = FontWeights.SemiBold,
+                Foreground = Brushes.White,
+                TextAlignment = TextAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+            Grid.SetRow(nameText, 1);
+            Grid.SetColumn(nameText, 0);
+            Grid.SetColumnSpan(nameText, 2);
+            grid.Children.Add(nameText);
+
+            // Описание
+            var descText = new TextBlock
+            {
+                Text = card.Description,
+                FontSize = 12,
+                Foreground = new SolidColorBrush(Color.FromRgb(180, 180, 200)),
+                TextWrapping = TextWrapping.Wrap,
+                TextAlignment = TextAlignment.Center,
+                Margin = new Thickness(5),
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            Grid.SetRow(descText, 2);
+            Grid.SetColumn(descText, 0);
+            Grid.SetColumnSpan(descText, 2);
+            grid.Children.Add(descText);
+
+            // Индикатор улучшения
+            var upgradeText = new TextBlock
+            {
+                Text = card.Upgraded ? "★ UPGRADED" : "",
+                FontSize = 11,
+                Foreground = card.Upgraded ? Brushes.Gold : new SolidColorBrush(Color.FromRgb(100, 200, 100)),
+                TextAlignment = TextAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                FontWeight = FontWeights.SemiBold
+            };
+            Grid.SetRow(upgradeText, 3);
+            Grid.SetColumn(upgradeText, 0);
+            Grid.SetColumnSpan(upgradeText, 2);
+            grid.Children.Add(upgradeText);
+
+            button.Content = grid;
+
+            return button;
+        }
+
+        private Brush GetCardBorderColor(CardType type)
+        {
+            return type switch
+            {
+                CardType.Attack => new SolidColorBrush(Color.FromRgb(200, 60, 60)),
+                CardType.Skill => new SolidColorBrush(Color.FromRgb(60, 100, 200)),
+                CardType.Power => new SolidColorBrush(Color.FromRgb(200, 180, 60)),
+                _ => new SolidColorBrush(Color.FromRgb(100, 100, 100))
+            };
         }
     }
 }

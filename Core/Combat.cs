@@ -42,6 +42,10 @@ namespace CardGame.CombatNamespace
             State = CombatState.PlayerTurn;
 
             player.OnCombatStart();
+
+            foreach (var passive in player.Passives) passive.OnCombatStart(player, this);
+            foreach (var passive in Enemy.Passives) passive.OnCombatStart(Enemy, this);
+
             player.MoveInnateCardsOnTop();
             StartPlayerTurn();
         }
