@@ -234,9 +234,141 @@ namespace CardGame
                 _ => CombatType.Basic
             });
 
-            // TODO: Показать выбор награды
-            // После выбора вернуться на карту
+            RewardOverlay.Visibility = Visibility.Visible;
+
+            RewardPanel.Children.Clear();
+
+            var goldButton = new Button
+            {
+                Width = 140,
+                Height = 200,
+                Margin = new Thickness(8),
+                Content = $"Gold: {reward.Gold}",
+                BorderThickness = new Thickness(3),
+                BorderBrush = Brushes.Gold,
+                Background = new SolidColorBrush(Color.FromRgb(30, 30, 50)),
+                Foreground = Brushes.White,
+                FontSize = 16,
+                FontWeight = FontWeights.Bold
+            };
+            int goldAmount = reward.Gold;
+
+            goldButton.Click += (s, e) =>
+            {
+                RewardPanel.Children.Remove(goldButton);
+                TakeGold_Click(goldAmount);
+            };
+            RewardPanel.Children.Add(goldButton);
+
+            var cardButton = new Button
+            {
+                Width = 140,
+                Height = 200,
+                Margin = new Thickness(8),
+                Content = "Card Choice",
+                BorderThickness = new Thickness(3),
+                BorderBrush = Brushes.Purple,
+                Background = new SolidColorBrush(Color.FromRgb(30, 30, 50)),
+                Foreground = Brushes.White,
+                FontSize = 16,
+                FontWeight = FontWeights.Bold
+            };
+
+            cardButton.Click += (s, e) =>
+            {
+                ShowCardChoice(reward.CardChoices);
+            };
+
+            RewardPanel.Children.Add(cardButton);
+
+            if (reward.Relics.Count != 0)
+            {
+                foreach (var relic in reward.Relics)
+                {
+                    var relicButton = new Button
+                    {
+                        Width = 140,
+                        Height = 200,
+                        Margin = new Thickness(8),
+                        Content = $"Relic: {relic.Name}",
+                        BorderThickness = new Thickness(3),
+                        BorderBrush = Brushes.Purple,
+                        Background = new SolidColorBrush(Color.FromRgb(30, 30, 50)),
+                        Foreground = Brushes.White,
+                        FontSize = 16,
+                        FontWeight = FontWeights.Bold
+                    };
+
+                    relicButton.Click += (s, e) =>
+                    {
+                        RewardPanel.Children.Remove(relicButton);
+                        TakeRelic_Click(relic);
+                    };
+                }
+            }
+        }
+        
+        private void SkipReward_Click(object sender, RoutedEventArgs e)
+        {
+            RewardOverlay.Visibility = Visibility.Collapsed;
             SwitchToMap();
+        }
+
+        private void TakeGold_Click(int gold)
+        {
+            game.Player.Gold += gold;
+            CheckAllRewardsTaken();
+        }
+
+        private void TakeRelic_Click(PassiveEffect relic)
+        {
+            game.Player.Passives.Add(relic);
+            CheckAllRewardsTaken();
+        }
+
+        private void ShowCardChoice(List<Card> cards)
+        {
+            CardChoiceOverlay.Visibility = Visibility.Visible;
+            CardChoicePanel.Children.Clear();
+
+            foreach (var card in cards)
+            {
+                var button = CreateCardButton(card);
+                button.Click += (s, e) => SelectCard(card);
+                CardChoicePanel.Children.Add(button);
+            }
+        }
+
+        private void SelectCard(Card selectedCard)
+        {
+            game.Player.Deck.Add(selectedCard);
+
+            CardChoiceOverlay.Visibility = Visibility.Collapsed;
+
+            Button cardChoiceButton = null;
+            foreach (var child in RewardPanel.Children)
+            {
+                if (child is Button btn && btn.Content.ToString() == "Card Choice")
+                {
+                    cardChoiceButton = btn;
+                    break;
+                }
+            }
+
+            if (cardChoiceButton != null)
+            {
+                RewardPanel.Children.Remove(cardChoiceButton);
+            }
+
+            CheckAllRewardsTaken();
+        }
+
+        private void CheckAllRewardsTaken()
+        {
+            if (RewardPanel.Children.Count == 0)
+            {
+                SkipRewardButton.Content = "Continue";
+            }
         }
 
         private void ViewPile(List<Card> cards)
@@ -269,6 +401,11 @@ namespace CardGame
         private void ClosePileOverlay_Click(object sender, RoutedEventArgs e)
         {
             PileOverlay.Visibility = Visibility.Collapsed;
+        }
+
+        private void CancelCardChoice_Click(object sender, RoutedEventArgs e)
+        {
+            CardChoiceOverlay.Visibility = Visibility.Collapsed;
         }
 
         private void BorderPile_Click(object sender, RoutedEventArgs e)
