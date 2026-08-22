@@ -1,0 +1,68 @@
+﻿<UserControl x:Class="CardGame.WPF.TreasureView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="900" d:DesignWidth="1600">
+    <Grid Background="#1a1a2e">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="200"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="100"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="100"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="20" HorizontalAlignment="Center">
+            <TextBlock x:Name="HpText" Foreground="White" FontSize="24" Margin="0,0,20,0"/>
+            <TextBlock x:Name="GoldText" Foreground="Gold" FontSize="24"/>
+        </StackPanel>
+
+        <!-- Центральная область с контентом сундука -->
+        <Grid Grid.Row="1" Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Заголовок -->
+            <TextBlock Grid.Row="0"
+                       Text="Treasure Found!"
+                       FontSize="32"
+                       Foreground="Gold"
+                       FontWeight="Bold"
+                       HorizontalAlignment="Center"
+                       Margin="0,0,0,20"/>
+
+            <!-- Релики -->
+            <ScrollViewer Grid.Row="1"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled"
+                          Margin="20">
+                <WrapPanel x:Name="RelicsPanel"
+                           HorizontalAlignment="Center"/>
+            </ScrollViewer>
+
+            <!-- Кнопка продолжения -->
+            <Button Grid.Row="2"
+                    x:Name="ContinueButton"
+                    Content="Continue"
+                    Width="150"
+                    Height="40"
+                    Margin="20"
+                    HorizontalAlignment="Center"
+                    Background="#3a3a5a"
+                    Foreground="White"
+                    BorderBrush="#5a5a7a"
+                    BorderThickness="2"
+                    Click="ContinueButton_Click"
+                    Visibility="Collapsed"/>
+        </Grid>
+    </Grid>
+</UserControl>

@@ -16,6 +16,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using CardGame.WPF;
 
 namespace CardGame
 {
@@ -87,7 +88,7 @@ namespace CardGame
                     // TODO: Показать магазин
                     break;
                 case NodeType.Treasure:
-                    // TODO: Показать сундук
+                    mainWindow?.SwitchToTreasure();
                     break;
             }
 
@@ -136,9 +137,10 @@ namespace CardGame
 
         public void ShowMap()
         {
-            MapUI.Visibility = Visibility.Visible;
             CombatUI.Visibility = Visibility.Collapsed;
             RestUI.Visibility = Visibility.Collapsed;
+            TreasureUI.Visibility = Visibility.Collapsed;
+            MapUI.Visibility = Visibility.Visible;
 
             MapContent.Content = new MapView(game.Map, game, this);
         }
@@ -147,6 +149,7 @@ namespace CardGame
         {
             MapUI.Visibility = Visibility.Collapsed;
             RestUI.Visibility = Visibility.Collapsed;
+            TreasureUI.Visibility = Visibility.Collapsed;
             CombatUI.Visibility = Visibility.Visible;
 
             combat = game.Combat;
@@ -157,9 +160,25 @@ namespace CardGame
         {
             CombatUI.Visibility = Visibility.Collapsed;
             RestUI.Visibility = Visibility.Collapsed;
+            TreasureUI.Visibility = Visibility.Collapsed;
             MapUI.Visibility = Visibility.Visible;
 
             MapContent.Content = new MapView(game.Map, game, this);
+        }
+
+        public void SwitchToTreasure()
+        {
+            MapUI.Visibility = Visibility.Collapsed;
+            RestUI.Visibility = Visibility.Collapsed;
+            CombatUI.Visibility = Visibility.Collapsed;
+            TreasureUI.Visibility = Visibility.Visible;
+
+            var treasureView = new TreasureView();
+            treasureView.SetPlayer(game.Player);
+            treasureView.SetOnTreasureComplete(SwitchToMap);
+            treasureView.GenerateTreasure();
+
+            TreasureContent.Content = treasureView;
         }
 
         public void SwitchToCampfire()

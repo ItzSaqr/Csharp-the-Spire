@@ -305,5 +305,8 @@
         <Grid x:Name="RestUI" Visibility="Collapsed">
             <ContentControl x:Name="RestContent"/>
         </Grid>
+        <Grid x:Name="TreasureUI" Visibility="Collapsed">
+            <ContentControl x:Name="TreasureContent"/>
+        </Grid>
     </Grid>
 </Window>

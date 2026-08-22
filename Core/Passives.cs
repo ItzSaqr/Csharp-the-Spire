@@ -72,6 +72,8 @@ namespace CardGame.Passives
             this.amount = amount;
         }
 
+        public Enrage() : this(1) { }
+
         public override void OnCardPlayed(Character owner, Combat combat, Card card)
         {
             if (card.Type == CardType.Skill) combat.Enemy.ApplyStrength(amount);

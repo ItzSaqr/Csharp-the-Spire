@@ -79,5 +79,76 @@ namespace CardGame.Rewards
         {
             return relicPool.OrderBy(x => rand.Next()).Take(amount).Select(create => create()).ToList();
         }
+
+        public PassiveEffect GenerateRandomRelic()
+        {
+            // веса реликов
+            var rarityWeights = new Dictionary<PassiveType, int>
+            {
+                { PassiveType.CommonRelic, 60 },
+                { PassiveType.UncommonRelic, 30 },
+                { PassiveType.RareRelic, 10 }
+            };
+
+            var relicsByRarity = new Dictionary<PassiveType, List<Func<PassiveEffect>>>();
+
+            foreach (var createFunc in relicPool)
+            {
+                var relic = createFunc();
+                if (!relicsByRarity.ContainsKey(relic.Type))
+                    relicsByRarity[relic.Type] = new List<Func<PassiveEffect>>();
+
+                relicsByRarity[relic.Type].Add(createFunc);
+            }
+
+            // выбор редкости на основе весов
+            int totalWeight = rarityWeights.Values.Sum();
+            int roll = rand.Next(totalWeight);
+            int cumulative = 0;
+
+            PassiveType selectedRarity = PassiveType.CommonRelic;
+            foreach (var kvp in rarityWeights)
+            {
+                cumulative += kvp.Value;
+                if (roll < cumulative)
+                {
+                    selectedRarity = kvp.Key;
+                    break;
+                }
+            }
+
+            // скип если нет реликов выбранной редкости
+            if (!relicsByRarity.ContainsKey(selectedRarity) || relicsByRarity[selectedRarity].Count == 0)
+            {
+                foreach (var rarity in new[] { PassiveType.CommonRelic, PassiveType.UncommonRelic,
+                                       PassiveType.RareRelic, PassiveType.BossRelic,
+                                       PassiveType.ShopRelic, PassiveType.Power })
+                {
+                    if (relicsByRarity.ContainsKey(rarity) && relicsByRarity[rarity].Count > 0)
+                    {
+                        selectedRarity = rarity;
+                        break;
+                    }
+                }
+            }
+
+            if (!relicsByRarity.ContainsKey(selectedRarity) || relicsByRarity[selectedRarity].Count == 0)
+                return null;
+
+            var pool = relicsByRarity[selectedRarity];
+            return pool[rand.Next(pool.Count)]();
+        }
+
+        public List<PassiveEffect> GenerateRandomRelicsFromPool(int amount)
+        {
+            var result = new List<PassiveEffect>();
+            for (int i = 0; i < amount; i++)
+            {
+                var relic = GenerateRandomRelic();
+                if (relic != null)
+                    result.Add(relic);
+            }
+            return result;
+        }
     }
 }
