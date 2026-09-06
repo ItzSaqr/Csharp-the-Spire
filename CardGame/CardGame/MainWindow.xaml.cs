@@ -1,11 +1,13 @@
-﻿using CardGame.Char;
+﻿using CardGame;
 using CardGame.Cards;
-using CardGame.Enemies;
+using CardGame.Char;
 using CardGame.CombatNamespace;
-using CardGame.Passives;
+using CardGame.Enemies;
 using CardGame.Map;
+using CardGame.Passives;
 using CardGame.Rewards;
-using CardGame;
+using CardGame.WPF;
+using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -16,7 +18,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using CardGame.WPF;
 
 namespace CardGame
 {
@@ -197,17 +198,59 @@ namespace CardGame
             HpText.Text = $"HP: {combat.Player.Hp}/{combat.Player.MaxHp}";
             BlockText.Text = $"Block: {combat.Player.Block}";
             EnergyText.Text = $"Energy: {combat.Player.Energy}/{combat.Player.MaxEnergy}";
-            
+
             EnemyNameText.Text = $"Enemy: {combat.Enemy.Name}";
             EnemyHpText.Text = $"HP: {combat.Enemy.Hp}/{combat.Enemy.MaxHp}";
             EnemyBlockText.Text = $"Block: {combat.Enemy.Block}";
-            EnemyIntentText.Text = $"Intent: {combat.Enemy.Intent.Text}";
+            EnemyIntentText.Text = $"Intent: {ParseIntentTextDamage(combat.Enemy.Intent.Text, combat, true)}";
 
             DrawHand();
             DrawPlayerPassives();
             DrawEnemyPassives();
             DrawPlayerEffects();
             DrawEnemyEffects();
+        }
+
+        private string ParseIntentTextDamage(string text, Combat combat, bool isPlayerTarget)
+        {
+
+            var parts = text.Split(' ');
+
+            // check for "deals x damage" intent
+            if (parts.Length >= 3 && (parts[0] == "Deals" || parts[0] == "Deal") && (parts[2] == "damage" || parts[2] == "damage."))
+            {
+                if (isPlayerTarget)
+                {
+                    int baseDamage = int.Parse(parts[1]);
+
+                    int actualDamage = baseDamage;
+                    actualDamage += combat.Enemy.Strength;
+                    if (combat.Enemy.Weak > 0)
+                        actualDamage = (int)(actualDamage * 0.75);
+                    if (combat.Player.Vulnerable > 0)
+                        actualDamage = (int)(actualDamage * 1.5);
+
+                    parts[1] = actualDamage.ToString();
+                    return string.Join(" ", parts);
+                }
+                else
+                {
+                    int baseDamage = int.Parse(parts[1]);
+
+                    int actualDamage = baseDamage;
+                    actualDamage += combat.Player.Strength;
+                    if (combat.Player.Weak > 0)
+                        actualDamage = (int)(actualDamage * 0.75);
+                    if (combat.Enemy.Vulnerable > 0)
+                        actualDamage = (int)(actualDamage * 1.5);
+
+                    parts[1] = actualDamage.ToString();
+                    return string.Join(" ", parts);
+                }
+            }
+
+            // if not return as it is
+            return text;
         }
 
         private void Card_Click(object sender, RoutedEventArgs e)
@@ -326,7 +369,7 @@ namespace CardGame
                 }
             }
         }
-        
+
         private void SkipReward_Click(object sender, RoutedEventArgs e)
         {
             RewardOverlay.Visibility = Visibility.Collapsed;
@@ -429,7 +472,7 @@ namespace CardGame
 
         private void BorderPile_Click(object sender, RoutedEventArgs e)
         {
-            e.Handled = true; 
+            e.Handled = true;
         }
 
         enum GameState
@@ -564,7 +607,7 @@ namespace CardGame
                 PlayerEffectsPanel.Children.Add(button);
             }
 
-            if(combat.Player.Dexterity != 0)
+            if (combat.Player.Dexterity != 0)
             {
                 var button = new Button
                 {
@@ -588,7 +631,7 @@ namespace CardGame
                 PlayerEffectsPanel.Children.Add(button);
             }
 
-            if(combat.Player.Strength != 0)
+            if (combat.Player.Strength != 0)
             {
                 var button = new Button
                 {
@@ -612,7 +655,7 @@ namespace CardGame
                 PlayerEffectsPanel.Children.Add(button);
             }
 
-            if(combat.Player.Poison > 0)
+            if (combat.Player.Poison > 0)
             {
                 var button = new Button
                 {
@@ -821,20 +864,68 @@ namespace CardGame
             grid.Children.Add(nameText);
 
             // Описание
-            var descText = new TextBlock
+            var descPanel = new WrapPanel
             {
-                Text = card.Description,
-                FontSize = 12,
-                Foreground = new SolidColorBrush(Color.FromRgb(180, 180, 200)),
-                TextWrapping = TextWrapping.Wrap,
-                TextAlignment = TextAlignment.Center,
-                Margin = new Thickness(5),
-                VerticalAlignment = VerticalAlignment.Center
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                MaxWidth = 130
             };
-            Grid.SetRow(descText, 2);
-            Grid.SetColumn(descText, 0);
-            Grid.SetColumnSpan(descText, 2);
-            grid.Children.Add(descText);
+
+            var desc = card.Description;
+            var parts = desc.Split(' ');
+            TextBlock damageTextBlock = null;
+
+            if (parts.Count() >= 3 && (parts[0] == "Deals" || parts[0] == "Deal") && (parts[2] == "damage" || parts[2] == "damage."))
+            {
+                var head = parts[0] + " ";
+                var tail = " " + string.Join(" ", parts.Skip(2));
+                var part1 = new TextBlock
+                {
+                    Text = parts[0] + " ",
+                    FontSize = 12,
+                    Foreground = new SolidColorBrush(Color.FromRgb(180, 180, 200)),
+                    TextWrapping = TextWrapping.Wrap,
+                };
+                descPanel.Children.Add(part1);
+
+                damageTextBlock = new TextBlock
+                {
+                    Text = parts[1],
+                    FontSize = 12,
+                    FontWeight = FontWeights.Bold,
+                    Foreground = new SolidColorBrush(Color.FromRgb(180, 180, 200)),
+                    TextWrapping = TextWrapping.Wrap,
+                };
+                descPanel.Children.Add(damageTextBlock);
+
+                var part3 = new TextBlock
+                {
+                    Text = " " + string.Join(" ", parts.Skip(2)),
+                    FontSize = 12,
+                    Foreground = new SolidColorBrush(Color.FromRgb(180, 180, 200)),
+                    TextWrapping = TextWrapping.Wrap,
+                };
+                descPanel.Children.Add(part3);
+            }
+            else
+            {
+                var descText = new TextBlock
+                {
+                    Text = desc,
+                    FontSize = 12,
+                    Foreground = new SolidColorBrush(Color.FromRgb(180, 180, 200)),
+                    TextWrapping = TextWrapping.Wrap,
+                    TextAlignment = TextAlignment.Center,
+                    Margin = new Thickness(5),
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+                descPanel.Children.Add(descText);
+            }
+
+            Grid.SetRow(descPanel, 2);
+            Grid.SetColumn(descPanel, 0);
+            Grid.SetColumnSpan(descPanel, 2);
+            grid.Children.Add(descPanel);
 
             // Индикатор улучшения
             var upgradeText = new TextBlock
@@ -853,7 +944,78 @@ namespace CardGame
 
             button.Content = grid;
 
+            button.MouseEnter += (s, e) =>
+            {
+                if (damageTextBlock != null && combat != null && card.Type == CardType.Attack)
+                {
+                    string text = GetCardDescription(card, true, out Color color);
+                    var newParts = text.Split(' ');
+                    if (newParts.Length >= 3)
+                    {
+                        damageTextBlock.Text = newParts[1];
+                        damageTextBlock.Foreground = new SolidColorBrush(color);
+                    }
+                }
+            };
+
+            button.MouseLeave += (s, e) =>
+            {
+                if (damageTextBlock != null)
+                {
+                    var parts = card.Description.Split(' ');
+                    if (parts.Length >= 3)
+                    {
+                        damageTextBlock.Text = parts[1];
+                        damageTextBlock.Foreground = new SolidColorBrush(Color.FromRgb(180, 180, 200));
+                    }
+                }
+            };
+
             return button;
+        }
+
+        private string GetCardDescription(Card card, bool showActualDamage, out Color colorOverride)
+        {
+            if (!showActualDamage) return card.Description;
+            else return ParseCardTextDamage(card.Description, combat, false, out colorOverride);
+        }
+
+        private string ParseCardTextDamage(string text, Combat combat, bool isPlayerTarget, out Color colorOverride)
+        {
+
+            var parts = text.Split(' ');
+
+            // check for "deals x damage" intent
+            if (parts.Length >= 3 && (parts[0] == "Deals" || parts[0] == "Deal") && (parts[2] == "damage" || parts[2] == "damage."))
+            {
+                int baseDamage = int.Parse(parts[1]);
+
+                int actualDamage = baseDamage;
+                actualDamage += combat.Player.Strength;
+                if (combat.Player.Weak > 0)
+                    actualDamage = (int)(actualDamage * 0.75);
+                if (combat.Enemy.Vulnerable > 0)
+                    actualDamage = (int)(actualDamage * 1.5);
+
+                parts[1] = actualDamage.ToString();
+
+                if (actualDamage > baseDamage)
+                {
+                    colorOverride = Colors.Green; // Damage increased
+                }
+                else if (actualDamage < baseDamage)
+                {
+                    colorOverride = Colors.Red; // Damage decreased
+                }
+                else
+                {
+                    colorOverride = Color.FromRgb(180, 180, 200); // no change
+                }
+                return string.Join(" ", parts);
+            }
+
+            // if not return as it is
+            return text;
         }
 
         private Brush GetCardBorderColor(CardType type)
