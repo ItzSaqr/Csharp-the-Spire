@@ -307,4 +307,37 @@ namespace CardGame.Cards
             Description = "Innate. Add a Shiv into your hand every turn.";
         }
     }
+
+    public class Inflame : Card
+    {
+        private int str = 2;
+        public Inflame()
+        {
+            Name = "Inflame";
+            Cost = 1;
+            Description = $"Gain 2 strength.";
+            Type = CardType.Power;
+            Rarity = Rarity.Uncommon;
+
+            Rewardable = true;
+            Exhaust = false;
+            Upgraded = false;
+            Innate = false;
+        }
+
+        public override void Play(Player player, Enemy enemy, Combat combat)
+        {
+            player.ApplyStrength(str);
+        }
+
+        public override void Upgrade()
+        {
+            if (Upgraded) return;
+            Name = "Inflame+";
+            Description = "Gain 3 strength.";
+            str = 3;
+            Upgraded = true;
+        }
+    }
+
 }

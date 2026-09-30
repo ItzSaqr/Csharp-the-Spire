@@ -36,6 +36,7 @@ namespace CardGame
             for (int i = 0; i < 5; i++) Player.Deck.Add(new Strike());
             for (int i = 0; i < 5; i++) Player.Deck.Add(new Defend());
             Player.Deck.Add(new Bash());
+            Player.Deck.Add(new Inflame());
 
             Map = new MapGenerator().Generate();
 

@@ -184,6 +184,12 @@ namespace CardGame.Char
 
         public void OnCombatStart()
         {
+            Weak = 0;
+            Vulnerable = 0;
+            Strength = 0;
+            Dexterity = 0;
+            Poison = 0;
+
             DrawPile.Clear();
             Hand.Clear();
             DiscardPile.Clear();
