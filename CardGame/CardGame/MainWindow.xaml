@@ -28,8 +28,8 @@
                     <!-- кнопки -->
                 </Grid.RowDefinitions>
                 <StackPanel Grid.Row="0"
-            Grid.Column="0"
-            Margin="20">
+                Grid.Column="0"
+                Margin="20">
 
                     <TextBlock x:Name="HpText" FontSize="24"/>
                     <TextBlock x:Name="BlockText" FontSize="24"/>
@@ -39,9 +39,9 @@
 
 
                 <StackPanel Grid.Row="0"
-            Grid.Column="2"
-            Margin="20"
-            HorizontalAlignment="Center">
+                Grid.Column="2"
+                Margin="20"
+                HorizontalAlignment="Center">
 
                     <TextBlock x:Name="EnemyNameText" 
                        FontSize="24"/>
@@ -55,15 +55,78 @@
 
                 </StackPanel>
 
+                <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Grid.RowSpan="2">
+                    <Image x:Name="BattleBackground" Source="..." Stretch="UniformToFill"/>
+
+                    <!-- Игрок -->
+                    <StackPanel HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                            Margin="250,0,0,100" Width="350">
+                        <Image x:Name="PlayerSprite"
+                            RenderTransformOrigin="0.5,0.5"
+                            Source="/assets/sprites/player.png"
+                            Stretch="Uniform"/>
+
+                        <Grid Margin="0,8,0,0" Height="20">
+                            <ProgressBar x:Name="PlayerHpBar"
+                                Minimum="0" Maximum="80" Value="80"
+                                Foreground="#c0392b"
+                                Background="#2c2c3a"
+                                BorderBrush="#1a1a2e"
+                                BorderThickness="2"/>
+                            <TextBlock x:Name="PlayerHpLabel"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                FontSize="13"
+                                FontWeight="Bold"
+                                Foreground="White"
+                                IsHitTestVisible="False">
+                                <TextBlock.Effect>
+                                    <DropShadowEffect Color="Black" BlurRadius="3" ShadowDepth="0"/>
+                                </TextBlock.Effect>
+                            </TextBlock>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Враг -->
+                    <StackPanel HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                            Margin="0,0,300,100" Width="350">
+                        <Image x:Name="EnemySprite"
+                            RenderTransformOrigin="0.5,0.5"
+                            Stretch="Uniform"/>
+
+                        <Grid Margin="0,8,0,0" Height="20">
+                            <ProgressBar x:Name="EnemyHpBar"
+                                Minimum="0" Maximum="26" Value="26"
+                                Foreground="#c0392b"
+                                Background="#2c2c3a"
+                                BorderBrush="#1a1a2e"
+                                BorderThickness="2"/>
+                            <TextBlock x:Name="EnemyHpLabel"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                FontSize="13"
+                                FontWeight="Bold"
+                                Foreground="White"
+                                IsHitTestVisible="False">
+                                <TextBlock.Effect>
+                                    <DropShadowEffect Color="Black" BlurRadius="3" ShadowDepth="0"/>
+                                </TextBlock.Effect>
+                            </TextBlock>
+                        </Grid>
+                    </StackPanel>
+
+                    <Canvas x:Name="EffectsCanvas" IsHitTestVisible="False"/>
+                </Grid>
+
                 <ScrollViewer Grid.Row="2"
-              Grid.ColumnSpan="3"
-              HorizontalScrollBarVisibility="Auto"
-              VerticalScrollBarVisibility="Disabled">
+                  Grid.ColumnSpan="3"
+                  HorizontalScrollBarVisibility="Auto"
+                  VerticalScrollBarVisibility="Disabled">
 
                     <StackPanel x:Name="HandPanel"
-                HorizontalAlignment="Center"
-                Orientation="Horizontal"
-                Margin="20"/>
+                    HorizontalAlignment="Center"
+                    Orientation="Horizontal"
+                    Margin="20"/>
 
                 </ScrollViewer>
 
@@ -80,10 +143,10 @@
                 </Button>
 
                 <StackPanel Grid.Row="3"
-            Grid.Column="1"
-            Orientation="Horizontal"
-            HorizontalAlignment="Left"
-            Margin="20">
+                Grid.Column="1"
+                Orientation="Horizontal"
+                HorizontalAlignment="Left"
+                Margin="20">
 
                     <Button Content="Draw" Width="100" Click="ViewDrawPile_Click"/>
                     <Button Content="Discard" Width="100" Margin="10,0,0,0" Click="ViewDiscardPile_Click"/>
@@ -133,9 +196,9 @@
                     </Grid.RowDefinitions>
 
                     <TextBlock Grid.Row="0"
-               Text="Passives"
-               FontSize="18"
-               Margin="10"/>
+                       Text="Passives"
+                       FontSize="18"
+                       Margin="10"/>
 
                     <WrapPanel Grid.Row="1"
                        x:Name="EnemyPassivesPanel"

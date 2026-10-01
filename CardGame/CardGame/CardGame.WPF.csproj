@@ -9,7 +9,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="assets\sprites\gremlin.png" />
+    <None Remove="assets\sprites\player.png" />
+    <None Remove="assets\sprites\snake.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\Core\CardGame.Backend.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="assets\sprites\gremlin.png" />
+    <Resource Include="assets\sprites\player.png" />
+    <Resource Include="assets\sprites\snake.png" />
   </ItemGroup>
 
 </Project>

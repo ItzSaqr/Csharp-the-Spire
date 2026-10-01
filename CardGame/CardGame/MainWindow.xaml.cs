@@ -29,6 +29,9 @@ namespace CardGame
         public Combat? Combat;
         private MainWindow mainWindow;
 
+        public Animator PlayerAnimator;
+        public Animator EnemyAnimator;
+
         public void StartRun()
         {
             Player = new Player { Hp = 80, MaxHp = 80, MaxEnergy = 3 };
@@ -37,6 +40,7 @@ namespace CardGame
             for (int i = 0; i < 5; i++) Player.Deck.Add(new Defend());
             Player.Deck.Add(new Bash());
             Player.Deck.Add(new Inflame());
+            Player.Passives.Add(new PenNib());
 
             Map = new MapGenerator().Generate();
 
@@ -128,6 +132,10 @@ namespace CardGame
         {
             game = new Game();
             game.setMainWindow(this);
+
+            game.PlayerAnimator = new Animator(PlayerSprite, direction: +1);
+            game.EnemyAnimator = new Animator(EnemySprite, direction: -1);
+
             game.StartRun();
 
             restView = new RestView();
@@ -155,6 +163,7 @@ namespace CardGame
             CombatUI.Visibility = Visibility.Visible;
 
             combat = game.Combat;
+            LoadSprites(combat.Enemy);
             UpdateUI();
         }
 
@@ -196,14 +205,20 @@ namespace CardGame
 
         private void UpdateUI()
         {
-            HpText.Text = $"HP: {combat.Player.Hp}/{combat.Player.MaxHp}";
             BlockText.Text = $"Block: {combat.Player.Block}";
             EnergyText.Text = $"Energy: {combat.Player.Energy}/{combat.Player.MaxEnergy}";
 
             EnemyNameText.Text = $"Enemy: {combat.Enemy.Name}";
-            EnemyHpText.Text = $"HP: {combat.Enemy.Hp}/{combat.Enemy.MaxHp}";
             EnemyBlockText.Text = $"Block: {combat.Enemy.Block}";
             EnemyIntentText.Text = $"Intent: {ParseIntentTextDamage(combat.Enemy.Intent.Text, combat, true)}";
+
+            EnemyHpBar.Maximum = combat.Enemy.MaxHp;
+            EnemyHpBar.Value = combat.Enemy.Hp;
+            EnemyHpLabel.Text = $"{combat.Enemy.Hp}/{combat.Enemy.MaxHp}";
+
+            PlayerHpBar.Maximum = combat.Player.MaxHp;
+            PlayerHpBar.Value = combat.Player.Hp;
+            PlayerHpLabel.Text = $"{combat.Player.Hp}/{combat.Player.MaxHp}";
 
             DrawHand();
             DrawPlayerPassives();
@@ -254,13 +269,30 @@ namespace CardGame
             return text;
         }
 
+
+        // TODO: цифры урона
         private void Card_Click(object sender, RoutedEventArgs e)
         {
             var button = (Button)sender;
             var card = (Card)button.Tag;
 
-            combat.PlayCard(card);
-            UpdateUI();
+            if (card.Type == CardType.Attack)
+            {
+                int hpBefore = combat.Enemy.Hp;
+
+                combat.PlayCard(card);
+                UpdateUI();
+
+                if (combat.Enemy.Hp < hpBefore)
+                {
+                    _ = game.EnemyAnimator.HurtAsync();
+                }
+            }
+            else
+            {
+                combat.PlayCard(card);
+                UpdateUI();
+            }
 
             if (combat.State == CombatState.Victory)
             {
@@ -272,10 +304,20 @@ namespace CardGame
             }
         }
 
-        private void EndTurn_Click(object sender, RoutedEventArgs e)
+        // TODO: цифры урона
+        private async void EndTurn_Click(object sender, RoutedEventArgs e)
         {
+            int hpBefore = combat.Player.Hp;
+
             combat.EndPlayerTurn();
             UpdateUI();
+
+            if (combat.Player.Hp < hpBefore)
+            {
+                await game.EnemyAnimator.AttackAsync();
+
+                _ = game.PlayerAnimator.HurtAsync();
+            } 
 
             if (combat.State == CombatState.Victory)
             {
@@ -1028,6 +1070,13 @@ namespace CardGame
                 CardType.Power => new SolidColorBrush(Color.FromRgb(200, 180, 60)),
                 _ => new SolidColorBrush(Color.FromRgb(100, 100, 100))
             };
+        }
+
+        private void LoadSprites(Enemy enemy)
+        {
+            string name = enemy.Name.ToLower();
+            EnemySprite.Source = new BitmapImage(
+                new Uri($"/assets/sprites/{name}.png", UriKind.Relative));
         }
     }
 }
