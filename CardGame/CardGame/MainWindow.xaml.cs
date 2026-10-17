@@ -6,6 +6,7 @@ using CardGame.Enemies;
 using CardGame.Map;
 using CardGame.Passives;
 using CardGame.Rewards;
+using CardGame.Shop;
 using CardGame.WPF;
 using System.IO;
 using System.Text;
@@ -91,7 +92,7 @@ namespace CardGame
                     mainWindow?.SwitchToCampfire();
                     break;
                 case NodeType.Shop:
-                    // TODO: Показать магазин
+                    mainWindow?.SwitchToShop();
                     break;
                 case NodeType.Treasure:
                     mainWindow?.SwitchToTreasure();
@@ -109,10 +110,10 @@ namespace CardGame
             Combat = new Combat(Player, enemy, new ConsoleCombatUI());
         }
 
-        public void ShowCampfire()
-        {
-            mainWindow?.SwitchToCampfire();
-        }
+        public void Save() { }
+
+        public void Load() { }
+
     }
     public partial class MainWindow : Window
     {
@@ -120,6 +121,7 @@ namespace CardGame
         private Game game;
         private MapView mapView;
         private RestView restView;
+        private ShopView shopView;
 
         public MainWindow()
         {
@@ -150,6 +152,7 @@ namespace CardGame
             CombatUI.Visibility = Visibility.Collapsed;
             RestUI.Visibility = Visibility.Collapsed;
             TreasureUI.Visibility = Visibility.Collapsed;
+            ShopUI.Visibility = Visibility.Collapsed;
             MapUI.Visibility = Visibility.Visible;
 
             MapContent.Content = new MapView(game.Map, game, this);
@@ -160,6 +163,7 @@ namespace CardGame
             MapUI.Visibility = Visibility.Collapsed;
             RestUI.Visibility = Visibility.Collapsed;
             TreasureUI.Visibility = Visibility.Collapsed;
+            ShopUI.Visibility = Visibility.Collapsed;
             CombatUI.Visibility = Visibility.Visible;
 
             combat = game.Combat;
@@ -172,6 +176,7 @@ namespace CardGame
             CombatUI.Visibility = Visibility.Collapsed;
             RestUI.Visibility = Visibility.Collapsed;
             TreasureUI.Visibility = Visibility.Collapsed;
+            ShopUI.Visibility = Visibility.Collapsed;
             MapUI.Visibility = Visibility.Visible;
 
             MapContent.Content = new MapView(game.Map, game, this);
@@ -182,6 +187,7 @@ namespace CardGame
             MapUI.Visibility = Visibility.Collapsed;
             RestUI.Visibility = Visibility.Collapsed;
             CombatUI.Visibility = Visibility.Collapsed;
+            ShopUI.Visibility = Visibility.Collapsed;
             TreasureUI.Visibility = Visibility.Visible;
 
             var treasureView = new TreasureView();
@@ -196,11 +202,39 @@ namespace CardGame
         {
             MapUI.Visibility = Visibility.Collapsed;
             CombatUI.Visibility = Visibility.Collapsed;
+            ShopUI.Visibility = Visibility.Collapsed;
             RestUI.Visibility = Visibility.Visible;
 
             restView.SetPlayer(game.Player);
             restView.SetOnRestComplete(SwitchToMap);
             restView.DrawScene(game.Player);
+        }
+
+        public void SwitchToShop()
+        {
+            MapUI.Visibility = Visibility.Collapsed;
+            RestUI.Visibility = Visibility.Collapsed;
+            CombatUI.Visibility = Visibility.Collapsed;
+            TreasureUI.Visibility = Visibility.Collapsed;
+            ShopUI.Visibility = Visibility.Visible;
+
+            var gen = new RewardGenerator();
+            var cards = gen.GenerateCardChoises(7);
+            var relics = gen.GenerateRandomRelics(3);
+            var shopState = new ShopState(cards, relics);
+
+            shopView = new ShopView();
+            shopView.Setup(
+                game.Player, 
+                shopState, 
+                onLeave: SwitchToMap, 
+                onRequestRemoveCard: (player, onCardSelected) =>
+                {
+                    ShowCardChoice(cards);
+                }
+            );
+
+            ShopContent.Content = shopView;
         }
 
         private void UpdateUI()

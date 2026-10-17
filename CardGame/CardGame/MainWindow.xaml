@@ -371,5 +371,8 @@
         <Grid x:Name="TreasureUI" Visibility="Collapsed">
             <ContentControl x:Name="TreasureContent"/>
         </Grid>
+        <Grid x:Name="ShopUI" Visibility="Collapsed">
+            <ContentControl x:Name="ShopContent"/>
+        </Grid>
     </Grid>
 </Window>

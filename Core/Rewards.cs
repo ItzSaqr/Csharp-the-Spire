@@ -70,12 +70,12 @@ namespace CardGame.Rewards
             return reward;
         }
 
-        private List<Card> GenerateCardChoises(int amount)
+        public List<Card> GenerateCardChoises(int amount)
         {
             return cardPool.OrderBy(x => rand.Next()).Take(amount).Select(create => create()).ToList();
         }
 
-        private List<PassiveEffect> GenerateRandomRelics(int amount)
+        public List<PassiveEffect> GenerateRandomRelics(int amount)
         {
             return relicPool.OrderBy(x => rand.Next()).Take(amount).Select(create => create()).ToList();
         }
