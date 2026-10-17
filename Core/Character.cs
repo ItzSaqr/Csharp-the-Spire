@@ -127,6 +127,10 @@ namespace CardGame.Char
         public List<Card> DiscardPile = new();
         public List<Card> ExhaustPile = new();
 
+        public void GainEnergy(int amount)
+        {
+            Energy += amount;
+        }
         public void Reshuffle()
         {
             DrawPile.AddRange(DiscardPile);

@@ -41,6 +41,7 @@ namespace CardGame
             for (int i = 0; i < 5; i++) Player.Deck.Add(new Defend());
             Player.Deck.Add(new Bash());
             Player.Deck.Add(new Inflame());
+            Player.Deck.Add(new Bloodletting());
             Player.Passives.Add(new PenNib());
 
             Map = new MapGenerator().Generate();
@@ -305,7 +306,7 @@ namespace CardGame
 
 
         // TODO: цифры урона
-        private void Card_Click(object sender, RoutedEventArgs e)
+        private async void Card_Click(object sender, RoutedEventArgs e)
         {
             var button = (Button)sender;
             var card = (Card)button.Tag;
@@ -319,7 +320,21 @@ namespace CardGame
 
                 if (combat.Enemy.Hp < hpBefore)
                 {
+                    await game.PlayerAnimator.AttackAsync();
+
                     _ = game.EnemyAnimator.HurtAsync();
+                }
+            }
+            else if (card.Type == CardType.Skill)
+            {
+                int hpBefore = combat.Player.Hp;
+
+                combat.PlayCard(card);
+                UpdateUI();
+
+                if (combat.Player.Hp < hpBefore)
+                {
+                    await game.PlayerAnimator.HurtAsync();
                 }
             }
             else
@@ -351,7 +366,11 @@ namespace CardGame
                 await game.EnemyAnimator.AttackAsync();
 
                 _ = game.PlayerAnimator.HurtAsync();
-            } 
+            }
+            else
+            {
+                await game.EnemyAnimator.AttackAsync();
+            }
 
             if (combat.State == CombatState.Victory)
             {

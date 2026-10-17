@@ -13,7 +13,7 @@
             <!-- 5 карт -->
             <RowDefinition Height="Auto"/>
             <!-- 2 карты + 3 реликвии + удаление -->
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
             <!-- спейсер -->
             <RowDefinition Height="Auto"/>
             <!-- кнопка уйти -->
@@ -28,14 +28,12 @@
         </StackPanel>
 
         <!-- Верхний ряд: 5 карт -->
-        <ItemsControl Grid.Row="1" x:Name="TopCardsPanel"
-                      HorizontalAlignment="Center" Margin="20,10">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <StackPanel Orientation="Horizontal"/>
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-        </ItemsControl>
+        <StackPanel Grid.Row="1" 
+                    x:Name="TopCardsPanel"
+                    HorizontalAlignment="Center"
+                    Orientation="Horizontal"
+                    Margin="20,10">
+        </StackPanel>
 
         <!-- Нижний ряд: 2 карты слева, 3 реликвии + удаление справа -->
         <Grid Grid.Row="2" Margin="20,10">
@@ -51,14 +49,11 @@
             </Grid.ColumnDefinitions>
 
             <!-- 2 карты слева -->
-            <ItemsControl Grid.Column="0" x:Name="BottomCardsPanel"
-                          VerticalAlignment="Top">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <StackPanel Orientation="Horizontal"/>
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-            </ItemsControl>
+            <StackPanel Grid.Column="0" 
+                        x:Name="BottomCardsPanel"
+                        VerticalAlignment="Top"
+                        Orientation="Horizontal">
+            </StackPanel>
 
             <!-- 3 реликвии -->
             <ItemsControl Grid.Column="2" x:Name="RelicsPanel"

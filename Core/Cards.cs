@@ -340,4 +340,68 @@ namespace CardGame.Cards
         }
     }
 
+    public class IronWave : Card
+    {
+        private int dmg = 5;
+        public IronWave()
+        {
+            Name = "Iron Wave";
+            Cost = 1;
+            Description = "Deal 5 damage. Gain 5 block.";
+            Type = CardType.Attack;
+            Rarity = Rarity.Common;
+
+            Rewardable = true;
+            Exhaust = false;
+            Upgraded = false;
+            Innate = false;
+        }
+
+        public override void Play(Player player, Enemy enemy, Combat combat)
+        {
+            combat.DealDamage(player, enemy, dmg, this);
+            player.GainBlock(dmg);
+        }
+
+        public override void Upgrade()
+        {
+            if (Upgraded) return;
+            Name = "Iron Wave+";
+            Description = "Deal 7 damage. Gain 7 block.";
+            Upgraded = true;
+            dmg = 7;
+        }
+    }
+
+    public class Bloodletting : Card
+    {
+        private int energy = 2;
+        public Bloodletting()
+        {
+            Name = "Bloodletting";
+            Cost = 0;
+            Description = "Lose 3 HP. Gain 2 energy.";
+            Type = CardType.Skill;
+            Rarity = Rarity.Uncommon;
+
+            Rewardable = true;
+            Exhaust = false;
+            Upgraded = false;
+            Innate = false;
+        }
+
+        public override void Play(Player player, Enemy enemy, Combat combat)
+        {
+            player.TakeDirectDamage(3);
+            player.GainEnergy(energy);
+        }
+
+        public override void Upgrade()
+        {
+            Name = "Bloodletting+";
+            Description = "Lose 3 HP. Gain 3 energy.";
+            Upgraded = true;
+            energy = 3;
+        }
+    }
 }

@@ -52,14 +52,14 @@ namespace CardGame.WPF
             var cardItems = shop.CardItems.ToList();
 
             // Первые 5 — в верхний ряд
-            TopCardsPanel.Items.Clear();
+            TopCardsPanel.Children.Clear();
             for (int i = 0; i < 5 && i < cardItems.Count; i++)
-                TopCardsPanel.Items.Add(BuildCardItem(cardItems[i]));
+                TopCardsPanel.Children.Add(BuildCardItem(cardItems[i]));
 
             // Следующие 2 — в нижний ряд
-            BottomCardsPanel.Items.Clear();
+            BottomCardsPanel.Children.Clear();
             for (int i = 5; i < cardItems.Count; i++)
-                BottomCardsPanel.Items.Add(BuildCardItem(cardItems[i]));
+                BottomCardsPanel.Children.Add(BuildCardItem(cardItems[i]));
 
             // Реликвии
             RelicsPanel.Items.Clear();
