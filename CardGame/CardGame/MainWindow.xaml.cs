@@ -1,4 +1,4 @@
-﻿using CardGame;
+using CardGame;
 using CardGame.Cards;
 using CardGame.Char;
 using CardGame.CombatNamespace;
@@ -7,6 +7,7 @@ using CardGame.Map;
 using CardGame.Passives;
 using CardGame.Rewards;
 using CardGame.Shop;
+using CardGame.Saves;
 using CardGame.WPF;
 using System.IO;
 using System.Text;
@@ -111,9 +112,17 @@ namespace CardGame
             Combat = new Combat(Player, enemy, new ConsoleCombatUI());
         }
 
-        public void Save() { }
+        public void Save()
+        {
+            SaveManager.Save(Player, Map);
+        }
 
-        public void Load() { }
+        public void LoadRun(SaveData data)
+        {
+            Player = SaveManager.RestorePlayer(data.Player);
+            Map = SaveManager.RestoreMap(data.Map);
+            CurrentNode = null;
+        }
 
     }
     public partial class MainWindow : Window
@@ -139,7 +148,17 @@ namespace CardGame
             game.PlayerAnimator = new Animator(PlayerSprite, direction: +1);
             game.EnemyAnimator = new Animator(EnemySprite, direction: -1);
 
-            game.StartRun();
+            var save = SaveManager.Load();
+            if (save != null &&
+                MessageBox.Show("Найдено сохранение. Продолжить с него?", "CardGame",
+                    MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            {
+                game.LoadRun(save);
+            }
+            else
+            {
+                game.StartRun();
+            }
 
             restView = new RestView();
             restView.SetPlayer(game.Player);
@@ -148,8 +167,21 @@ namespace CardGame
             ShowMap();
         }
 
+        private void RestartRun_Click(object sender, RoutedEventArgs e)
+        {
+            if (MessageBox.Show("Сбросить текущий прогресс и начать новый ран?", "Restart",
+                    MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+                return;
+
+            game.StartRun();
+            restView.SetPlayer(game.Player);
+            ShowMap();
+        }
+
         public void ShowMap()
         {
+            game.Save();
+
             CombatUI.Visibility = Visibility.Collapsed;
             RestUI.Visibility = Visibility.Collapsed;
             TreasureUI.Visibility = Visibility.Collapsed;
@@ -174,6 +206,8 @@ namespace CardGame
 
         public void SwitchToMap()
         {
+            game.Save();
+
             CombatUI.Visibility = Visibility.Collapsed;
             RestUI.Visibility = Visibility.Collapsed;
             TreasureUI.Visibility = Visibility.Collapsed;

@@ -1,4 +1,4 @@
-﻿using CardGame.Cards;
+using CardGame.Cards;
 using CardGame.Passives;
 using CardGame.CombatNamespace;
 using CardGame.Enemies;
@@ -72,7 +72,11 @@ namespace CardGame.Rewards
 
         public List<Card> GenerateCardChoises(int amount)
         {
-            return cardPool.OrderBy(x => rand.Next()).Take(amount).Select(create => create()).ToList();
+            // с повторами, если карт в пуле меньше запрошенного количества
+            var result = new List<Card>();
+            for (int i = 0; i < amount; i++)
+                result.Add(cardPool[rand.Next(cardPool.Count)]());
+            return result;
         }
 
         public List<PassiveEffect> GenerateRandomRelics(int amount)

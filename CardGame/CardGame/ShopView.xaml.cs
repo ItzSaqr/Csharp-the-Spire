@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using CardGame.Shop;
@@ -134,7 +134,7 @@ namespace CardGame.WPF
         {
             var btn = new Button
             {
-                Width = 120,
+                Width = 100,
                 Height = 120,
                 Margin = new Thickness(10),
                 IsEnabled = item.CanBuy(player),

@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="CardGame.WPF.ShopView"
+<UserControl x:Class="CardGame.WPF.ShopView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -36,12 +36,13 @@
         </StackPanel>
 
         <!-- Нижний ряд: 2 карты слева, 3 реликвии + удаление справа -->
-        <Grid Grid.Row="2" Margin="20,10">
+        <Grid Grid.Row="2" Margin="20,10"
+              HorizontalAlignment="Center">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <!-- 2 карты -->
-                <ColumnDefinition Width="*"/>
-                <!-- спейсер -->
+                <ColumnDefinition Width="20"/>
+                <!-- отступ между картами и реликвиями -->
                 <ColumnDefinition Width="Auto"/>
                 <!-- 3 реликвии -->
                 <ColumnDefinition Width="Auto"/>
@@ -67,7 +68,7 @@
 
             <!-- Удаление карты -->
             <Button Grid.Column="3" x:Name="RemoveCardButton"
-                    Width="120" Height="160"
+                    Width="100" Height="160"
                     VerticalAlignment="Top"
                     Background="#3a3a5a" Foreground="White"
                     BorderBrush="#5a5a7a" BorderThickness="3"
